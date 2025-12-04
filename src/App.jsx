@@ -1,0 +1,34 @@
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import ModulePage from './pages/ModulePage';
+import ChatThread from './pages/ChatThread';
+
+function App() {
+  const location = useLocation();
+  const isChatPage = location.pathname.startsWith('/chat/');
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 font-sans text-slate-200">
+      {!isChatPage && <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>}
+      {!isChatPage && <Navbar />}
+      <main className={`${isChatPage ? '' : 'relative z-10'}`}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/chat/:chatId" element={<ChatThread />} />
+          <Route path="/crop-care" element={<ModulePage title="Crop Care" />} />
+          <Route path="/weather-insights" element={<ModulePage title="Weather Insights" />} />
+          <Route path="/pest-diagnosis" element={<ModulePage title="Pest / Disease Diagnosis" />} />
+          <Route path="/seasonal-advice" element={<ModulePage title="Seasonal Advice" />} />
+          <Route path="/govt-schemes" element={<ModulePage title="Government Schemes" />} />
+          <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
+        </Routes>
+      </main>
+      {!isChatPage && <Footer />}
+    </div>
+  );
+}
+
+export default App;
