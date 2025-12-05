@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 const modules = [
   { name: 'Crop Care', path: '/crop-care' },
-  { name: 'Weather Insights', path: '/weather-insights' },
+  { name: 'Weather Insights', path: '/weather' },
   { name: 'Pest / Disease Diagnosis', path: '/pest-diagnosis' },
   { name: 'Seasonal Advice', path: '/seasonal-advice' },
   { name: 'Government Schemes', path: '/govt-schemes' },

@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import ModulePage from './pages/ModulePage';
 import ChatThread from './pages/ChatThread';
 import OrbitBackground from './components/OrbitBackground';
+import WeatherInsights from './pages/WeatherInsights';
 
 function App() {
   const location = useLocation();
@@ -20,7 +21,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/chat/:chatId" element={<ChatThread />} />
           <Route path="/crop-care" element={<ModulePage title="Crop Care" />} />
-          <Route path="/weather-insights" element={<ModulePage title="Weather Insights" />} />
+                    <Route path="/weather" element={<WeatherInsights />} />
           <Route path="/pest-diagnosis" element={<ModulePage title="Pest / Disease Diagnosis" />} />
           <Route path="/seasonal-advice" element={<ModulePage title="Seasonal Advice" />} />
           <Route path="/govt-schemes" element={<ModulePage title="Government Schemes" />} />
