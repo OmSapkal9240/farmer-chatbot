@@ -4,6 +4,10 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import ModulePage from './pages/ModulePage';
+import CropCarePage from './components/CropCarePage';
+import PestDiagnosisPage from './pages/PestDiagnosisPage';
+import SeasonalAdvicePage from './pages/SeasonalAdvicePage';
+import GovtSchemesPage from './pages/GovtSchemesPage';
 import ChatThread from './pages/ChatThread';
 import OrbitBackground from './components/OrbitBackground';
 import WeatherInsights from './pages/WeatherInsights';
@@ -20,11 +24,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/chat/:chatId" element={<ChatThread />} />
-          <Route path="/crop-care" element={<ModulePage title="Crop Care" />} />
-                    <Route path="/weather" element={<WeatherInsights />} />
-          <Route path="/pest-diagnosis" element={<ModulePage title="Pest / Disease Diagnosis" />} />
-          <Route path="/seasonal-advice" element={<ModulePage title="Seasonal Advice" />} />
-          <Route path="/govt-schemes" element={<ModulePage title="Government Schemes" />} />
+          <Route path="/crop-care" element={<CropCarePage />} />
+          <Route path="/weather" element={<WeatherInsights />} />
+          <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
+          <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
+          <Route path="/govt-schemes" element={<GovtSchemesPage />} />
           <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
         </Routes>
       </main>
