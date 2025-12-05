@@ -5,14 +5,15 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import ModulePage from './pages/ModulePage';
 import ChatThread from './pages/ChatThread';
+import OrbitBackground from './components/OrbitBackground';
 
 function App() {
   const location = useLocation();
   const isChatPage = location.pathname.startsWith('/chat/');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 font-sans text-slate-200">
-      {!isChatPage && <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>}
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
+      {!isChatPage && <OrbitBackground />}
       {!isChatPage && <Navbar />}
       <main className={`${isChatPage ? '' : 'relative z-10'}`}>
         <Routes>

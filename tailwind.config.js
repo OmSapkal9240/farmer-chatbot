@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
+        sans: ['Orbitron', 'sans-serif'],
       },
       colors: {
         'slate-900': '#0f172a',

@@ -46,12 +46,11 @@ export default function ChatThread(){
   if(!chat) return null;
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center px-6 py-8">
+    <div className="min-h-screen flex flex-col items-center px-6 py-12 bg-gradient-to-b from-[#0a0f1f] to-[#10172d]">
       <div className="w-full max-w-4xl">
-        <div className="flex items-center justify-between mb-4">
-          <button className="text-sm text-slate-300" onClick={()=> navigate(-1)}>← Back</button>
-          <div className="font-bold text-lg">Chat: {chat.title}</div>
-          <div></div>
+        <div className="relative flex items-center justify-center mb-6">
+          <button className="absolute left-0 text-sm text-slate-300 hover:text-white transition" onClick={()=> navigate(-1)}>← Back</button>
+          <div className="font-bold text-xl text-center">{chat.title}</div>
         </div>
 
         <motion.div 
@@ -69,7 +68,7 @@ export default function ChatThread(){
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.18 }}
-                  className={`max-w-[80%] px-4 py-3 rounded-xl ${m.role === "user" ? "ml-auto bg-blue-600 text-white" : "bg-slate-700 text-slate-100"}`}
+                  className={`max-w-[80%] px-5 py-3 rounded-xl shadow-md ${m.role === "user" ? "ml-auto bg-blue-600 text-white" : "bg-slate-700 text-slate-100"}`}
                 >
                   {m.text}
                 </motion.div>
