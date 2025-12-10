@@ -25,8 +25,7 @@ export default function ChatThread() {
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  const [useDemo, setUseDemo] = useState(false);
-  const chatContainerRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
   // Load chat history
   useEffect(() => {
@@ -73,14 +72,8 @@ export default function ChatThread() {
     setError(null);
 
     try {
-      let response;
-      if (useDemo) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        response = { choices: [{ message: { content: getDemoReply(userMessage.content) } }] };
-      } else {
-        const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
-        response = await askLLM(history);
-      }
+      const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
+      const response = await askLLM(history);
       const botMessage = { role: 'assistant', content: response.choices[0].message.content };
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
@@ -96,7 +89,7 @@ export default function ChatThread() {
       setIsProcessing(false);
     }
 
-  }, [inputValue, isProcessing, useDemo, chatId]);
+  }, [inputValue, isProcessing, chatId]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -111,11 +104,10 @@ export default function ChatThread() {
         <div className="relative flex items-center justify-center mb-4 p-2">
           <button className="absolute left-0 text-sm text-slate-300 hover:text-white transition" onClick={() => navigate('/')}>← Home</button>
           <h1 className="font-orbitron font-bold text-xl text-center">Agri-Assistant</h1>
-          <button onClick={() => setUseDemo(!useDemo)} className={`absolute right-0 text-xs px-2 py-1 rounded-full ${useDemo ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-300'}`}>Demo {useDemo ? 'ON' : 'OFF'}</button>
-        </div>
+                  </div>
 
         <div className="flex-1 flex flex-col bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-slate-800">
-          {error && <ErrorBanner error={error} setUseDemo={setUseDemo} />}
+          {error && <ErrorBanner error={error} />}
           
           <div ref={chatContainerRef} className="flex-1 p-4 space-y-4 overflow-y-auto scroll-smooth">
             <AnimatePresence>
@@ -144,12 +136,11 @@ export default function ChatThread() {
   );
 }
 
-const ErrorBanner = ({ error, setUseDemo }) => (
+const ErrorBanner = ({ error }) => (
   <div className="bg-red-800/90 text-white p-3 text-center text-sm flex items-center justify-center gap-3">
     <AlertTriangle size={18} />
     <span>{error.message}</span>
-    {error.type === 'API_KEY_MISSING' && <button onClick={() => setUseDemo(true)} className="font-bold underline hover:text-red-200">Use demo</button>}
-    {error.type === 'INVALID_API_KEY' && <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
+        {error.type === 'INVALID_API_KEY' && <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
   </div>
 );
 

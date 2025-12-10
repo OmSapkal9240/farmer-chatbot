@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import { Rocket } from 'lucide-react';
 import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
 
@@ -30,9 +31,9 @@ export default function Home() {
 
   const startChat = () => {
     const id = Date.now().toString();
-    const chats = JSON.parse(localStorage.getItem("chats") || "[]");
-    chats.unshift({ id, title: "New Chat", messages: [{role:"assistant", text:"Namaskar! How can I help?"}] });
-    localStorage.setItem("chats", JSON.stringify(chats));
+    const chats = JSON.parse(localStorage.getItem("chat_sessions") || "[]");
+    chats.unshift({ id, title: "New Chat", messages: [{role:"assistant", content:"Namaskar! How can I help?"}] });
+    localStorage.setItem("chat_sessions", JSON.stringify(chats));
     navigate(`/chat/${id}`);
   };
 
@@ -55,18 +56,23 @@ export default function Home() {
             <div className="absolute -inset-x-8 -top-4 h-32 bg-gradient-to-t from-transparent to-emerald-900/30 blur-3xl"></div>
             <h2 
               style={{ fontFamily: "'Orbitron', sans-serif" }}
-              className="text-3xl md:text-4xl font-bold mb-8 gradient-text animate-hue-shift"
+              className="text-4xl md:text-5xl font-bold mb-4 gradient-text animate-hue-shift"
             >
-              Helping Indian Farmers with Smart, Simple, Multilingual Advisory.
+              Your AI Farming Assistant
             </h2>
+            <p className="max-w-2xl mx-auto text-lg text-slate-300 mb-8">
+              Get instant, reliable advice on crops, weather, and more. Start a conversation to get the help you need.
+            </p>
           </div>
-          <button 
-            onClick={startChat}
-            className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-button-glow hover:shadow-cyan-400/40 hover:scale-[1.04] transition-all duration-300"
-          >
-            Start a New Chat
-          </button>
-          <FloatingFarmIcon />
+          <div className="mt-10">
+            <button 
+              onClick={startChat}
+              className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-lg hover:shadow-cyan-400/40 hover:scale-105 transition-all duration-300 flex items-center space-x-3"
+            >
+              <Rocket size={22} />
+              <span>Start a New Chat</span>
+            </button>
+          </div>
         </motion.div>
       </section>
 

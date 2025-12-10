@@ -1,22 +1,14 @@
 // src/lib/chatApi.js
-const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
-
-export async function askLLM(messages = [], model = "google/gemma-7b-it") {
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY; // ensure VITE_ prefix
-  if (!apiKey) throw new Error("Missing VITE_OPENROUTER_API_KEY");
-
-  const res = await fetch(ENDPOINT, {
+export async function askLLM(messages) {
+  const res = await fetch("/api/chat", {
     method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ model, messages })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages })
   });
-
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`OpenRouter API error ${res.status}: ${text}`);
+    const txt = await res.text();
+    throw new Error(`Proxy error ${res.status}: ${txt}`);
   }
   return res.json();
 }
+

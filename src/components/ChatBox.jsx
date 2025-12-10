@@ -61,30 +61,29 @@ const ChatBox = () => {
     setIsProcessing(true);
     setError(null);
 
-    let response;
-    if (useDemo) {
-      // Use canned responses in demo mode
-      await new Promise(resolve => setTimeout(resolve, 500)); // simulate network delay
-      response = { text: getDemoReply(userMessage.content) };
-    } else {
-      response = await askLLM(userMessage.content);
-    }
-
-    setIsProcessing(false);
-
-    if (response.error) {
-      if (response.error === 'API_KEY_MISSING') {
-        setError({ type: 'API_KEY_MISSING', message: 'API key missing — set VITE_GROQ_API_KEY in WindSurf Project Settings or project root .env' });
-      } else if (response.error === 'INVALID_API_KEY') {
-        setError({ type: 'INVALID_API_KEY', message: 'Invalid API key — regenerate key and update environment variable.' });
+    try {
+      let response;
+      if (useDemo) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        response = { choices: [{ message: { content: getDemoReply(userMessage.content) } }] };
       } else {
-        // Generic network error
-        setMessages((prev) => [...prev, { role: 'assistant', content: response.text, isError: true }]);
+        const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
+        response = await askLLM(history);
       }
-      return;
+      const botMessage = { role: 'assistant', content: response.choices[0].message.content };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (err) {
+      const message = err.message.toLowerCase();
+      if (message.includes('missing')) {
+        setError({ type: 'API_KEY_MISSING', message: 'API key missing. Set VITE_OPENROUTER_API_KEY in your environment.' });
+      } else if (message.includes('invalid')) {
+        setError({ type: 'INVALID_API_KEY', message: 'Invalid API key.' });
+      } else {
+        setError({ type: 'NETWORK_ERROR', message: 'Network error. Please try again.' });
+      }
+    } finally {
+      setIsProcessing(false);
     }
-
-    const botMessage = { role: 'assistant', content: response.text };
     setMessages((prev) => [...prev, botMessage]);
 
   }, [inputValue, isProcessing, useDemo]);
