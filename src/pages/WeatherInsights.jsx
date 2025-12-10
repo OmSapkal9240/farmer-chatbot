@@ -1,194 +1,161 @@
-// src/pages/WeatherInsights.jsx
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sun, Wind, Droplets, Sunrise, Sunset, Search, MapPin } from 'lucide-react';
-import { getCurrentWeatherByCity, getCurrentWeatherByCoords, getThreeDayForecastByCoords } from '../lib/weatherApi';
-import WeatherCard from '../components/WeatherCard';
+import React, { useEffect, useState } from "react";
+import { getCoordsByPlace, getThreeDayForecastByCoords } from "../lib/weatherApi";
+import WeatherCard from "../components/WeatherCard";
 
-const WeatherInsights = () => {
-  const [query, setQuery] = useState('');
-  const [weather, setWeather] = useState(null);
-  const [forecast, setForecast] = useState([]);
+function shortTipForDay(min, max, pop) {
+  // simple rules for card tips
+  if (max > 35) return "High heat—irrigate morning/evening";
+  if (pop > 0.4) return "Rain expected—postpone spraying";
+  return "Normal — monitor crop";
+}
+
+export default function WeatherInsights() {
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const fetchWeatherData = async (latitude, longitude, cityName) => {
-    setLoading(true);
-    setError('');
-    setWeather(null);
-    setForecast([]);
-
+  const [error, setError] = useState(null);
+  const [payload, setPayload] = useState(null); // { name, current, daily }
+  const [recent, setRecent] = useState(() => {
     try {
-      const currentWeatherData = cityName
-        ? await getCurrentWeatherByCity(cityName)
-        : await getCurrentWeatherByCoords(latitude, longitude);
+      return JSON.parse(localStorage.getItem("recentWeather")||"[]");
+    } catch { return []; }
+  });
+  const [mockMode, setMockMode] = useState(false);
 
-      const forecastData = await getThreeDayForecastByCoords(
-        currentWeatherData.coord.lat,
-        currentWeatherData.coord.lon
-      );
+  useEffect(() => {
+    // optional: load demo at start
+  }, []);
 
-      setWeather(currentWeatherData);
-      setForecast(forecastData);
+  async function loadByQuery(q) {
+    setError(null);
+    setLoading(true);
+    try {
+      const geo = await getCoordsByPlace(q);
+      if (geo.error) {
+        setError(geo.message || "Location not found");
+        setLoading(false);
+        return;
+      }
+      const forecast = await getThreeDayForecastByCoords(geo.lat, geo.lon, geo.name);
+      if (forecast.error && forecast.mock) {
+        setMockMode(true);
+        setPayload(forecast);
+      } else {
+        setMockMode(false);
+        setPayload({ name: geo.name, ...forecast });
+      }
+      // save recent
+      const r = [ { q: geo.name, lat: geo.lat, lon: geo.lon }, ...recent.filter(r=>r.q!==geo.name) ].slice(0,5);
+      setRecent(r);
+      localStorage.setItem("recentWeather", JSON.stringify(r));
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to load");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (query.trim()) {
-      fetchWeatherData(null, null, query);
+  async function useMyLocation() {
+    setError(null);
+    setLoading(true);
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported");
+      setLoading(false);
+      return;
     }
-  };
-
-  const handleGeolocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          fetchWeatherData(latitude, longitude, null);
-        },
-        (err) => {
-          setError('Geolocation failed. Please enable location services or use the search bar.');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const forecast = await getThreeDayForecastByCoords(lat, lon, null);
+        if (forecast.error && forecast.mock) {
+          setMockMode(true);
+          setPayload(forecast);
+        } else {
+          setMockMode(false);
+          setPayload({ name: forecast.name || `${lat.toFixed(2)},${lon.toFixed(2)}`, ...forecast });
         }
-      );
-    } else {
-      setError('Geolocation is not supported by your browser.');
-    }
-  };
+      } catch (err) {
+        setError(err.message || "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    }, (err) => {
+      setError("Location permission denied or unavailable");
+      setLoading(false);
+    });
+  }
 
-  const getFarmingAdvice = () => {
-    if (!weather) return [];
-    const advice = [];
-    if (weather.main.temp > 35) {
-      advice.push('High heat: Water crops early in the morning or late in the evening to reduce evaporation.');
-    }
-    if (weather.main.humidity > 80) {
-      advice.push('High humidity: Increased risk of fungal diseases. Avoid spraying and ensure good air circulation.');
-    }
-    if (weather.wind.speed > 8) { // 8 m/s
-      advice.push('High winds: Avoid spraying pesticides or herbicides as they may drift.');
-    }
-    // Note: OpenWeather 'onecall' for forecast includes rain probability, but the basic 'weather' endpoint doesn't.
-    // This is a placeholder; for accurate rain chance, the API structure would need adjustment.
-    if (weather.weather[0].main === 'Rain') {
-        advice.push('Rain expected: Postpone applying fertilizers or pesticides to prevent washout.');
-    }
-    return advice.length > 0 ? advice : ['Weather conditions are favorable. Monitor crops as usual.'];
-  };
+  function handleRecentClick(item) {
+    setQuery(item.q);
+    loadByQuery(item.q);
+  }
 
-  const farmingAdvice = getFarmingAdvice();
-
-  const containerVariants = { 
-    hidden: { opacity: 0 }, 
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } } 
-  };
-  const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
+  function renderAdvice(current, daily) {
+    if (!current && !daily) return null;
+    const adv = [];
+    const temp = current?.temp ?? daily?.[0]?.max;
+    const humidity = current?.humidity ?? null;
+    const wind = current?.wind_kmh ?? null;
+    if (temp > 35) adv.push("High heat: irrigate in morning/evening; avoid midday spraying.");
+    if (humidity && humidity > 80) adv.push("High humidity: avoid spraying; fungal risk.");
+    if (wind && wind > 8) adv.push("High wind: delay spraying.");
+    if (daily && daily[0] && daily[0].pop > 0.4) adv.push("Rain likely: postpone fertiliser & spraying.");
+    return adv;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-8 relative overflow-hidden">
-      {/* Background Gradient Blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-cyan-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-green-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    <div className="max-w-5xl mx-auto px-6 py-10">
+      <h2 className="text-3xl font-extrabold" style={{fontFamily:"'Orbitron', sans-serif"}}>Weather Insights</h2>
 
-      <motion.div 
-        className="max-w-4xl mx-auto z-10 relative"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl font-orbitron text-center mb-8 font-bold tracking-wider">Weather Insights</motion.h1>
+      <div className="mt-6 flex gap-3 items-center">
+        <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Enter city or PIN code" className="flex-grow px-4 py-3 rounded-full bg-[#0b1220] border border-slate-700" />
+        <button onClick={()=>loadByQuery(query)} className="px-4 py-3 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 font-semibold">Search</button>
+        <button onClick={useMyLocation} className="px-4 py-3 rounded-full bg-slate-700">Use My Location</button>
+      </div>
 
-        <motion.form variants={itemVariants} onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4 mb-8">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Enter city or pincode..."
-            className="flex-grow bg-white/10 backdrop-blur-md text-white placeholder-gray-400 rounded-full px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
-          />
-          <div className="flex gap-4">
-            <button type="submit" className="w-full sm:w-auto flex-1 bg-gradient-to-r from-emerald-400 to-cyan-400 text-black font-bold rounded-full px-6 py-3 hover:opacity-90 transition-opacity duration-300 shadow-lg hover:shadow-cyan-400/50 glow-on-hover">
-              <Search className="inline-block mr-2" /> Search
-            </button>
-            <button type="button" onClick={handleGeolocation} className="w-full sm:w-auto flex-1 bg-white/10 backdrop-blur-md text-white font-bold rounded-full px-6 py-3 hover:bg-white/20 transition-colors duration-300 shadow-lg hover:shadow-emerald-400/50 glow-on-hover">
-              <MapPin className="inline-block mr-2" /> Use My Location
-            </button>
+      <div className="mt-4 flex gap-4">
+        <div>
+          <div className="text-sm text-slate-400">Recent</div>
+          <div className="flex gap-2 mt-2">
+            {recent.length===0 && <div className="text-slate-500">No recent</div>}
+            {recent.map((r,i)=>(<button key={i} onClick={()=>handleRecentClick(r)} className="px-3 py-1 rounded-full bg-slate-800/50 text-sm">{r.q}</button>))}
           </div>
-        </motion.form>
+        </div>
+        <div className="ml-auto">
+          <button onClick={()=>{ setMockMode(!mockMode); if(mockMode) setPayload(null); }} className="text-sm px-3 py-1 rounded-full bg-slate-800/40">{mockMode ? "Demo ON" : "Toggle Demo"}</button>
+        </div>
+      </div>
 
-        {loading && <div className="text-center text-lg">Loading weather data...</div>}
-        {error && <div className="text-center bg-red-500/30 p-4 rounded-xl">Error: {error}</div>}
+      {loading && <div className="mt-8 text-slate-400">Loading…</div>}
+      {error && <div className="mt-6 text-red-400">{error}</div>}
 
-        {weather && (
-          <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-            {/* Main Summary Card */}
-            <motion.div variants={itemVariants} className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left">
+      {payload && (
+        <section className="mt-8 grid gap-6">
+          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-700">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-bold font-orbitron">{weather.name}</h2>
-                <p className="text-gray-300 capitalize">{weather.weather[0].description}</p>
+                <div className="text-slate-400 text-sm">Location</div>
+                <div className="text-xl font-bold">{payload.name}</div>
               </div>
-              <div className="flex items-center">
-                <img src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@4x.png`} alt="weather icon" className="w-24 h-24 sm:w-32 sm:h-32" />
-                <p className="text-5xl sm:text-7xl font-bold">{Math.round(weather.main.temp)}°C</p>
+              <div className="text-right">
+                <div className="text-5xl font-extrabold">{payload.current ? Math.round(payload.current.temp) : Math.round(payload.daily[0].max)}°</div>
+                <div className="text-sm text-slate-400">{payload.current?.weather ?? "—"}</div>
               </div>
-            </motion.div>
+            </div>
+          </div>
 
-            {/* Metrics Grid */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
-              <MetricCard icon={<Droplets />} title="Humidity" value={`${weather.main.humidity}%`} />
-              <MetricCard icon={<Wind />} title="Wind Speed" value={`${(weather.wind.speed * 3.6).toFixed(1)} km/h`} />
-              <MetricCard icon={<Sunrise />} title="Sunrise" value={new Date(weather.sys.sunrise * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
-              <MetricCard icon={<Sunset />} title="Sunset" value={new Date(weather.sys.sunset * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
-            </motion.div>
+          <div className="flex gap-4 overflow-x-auto">
+            {(payload.daily || []).slice(0,3).map((d,i)=>(<WeatherCard key={i} date={d.date} min={d.min} max={d.max} pop={d.pop} tip={shortTipForDay(d.min,d.max,d.pop)} />))}
+          </div>
 
-            {/* 3-Day Forecast */}
-            <motion.h3 variants={itemVariants} className="text-2xl font-orbitron font-bold mb-4">3-Day Forecast</motion.h3>
-            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
-              {forecast.map((day, index) => (
-                <WeatherCard
-                  key={index}
-                  day={new Date(day.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' })}
-                  icon={day.weather[0].icon}
-                  maxTemp={day.temp.max}
-                  minTemp={day.temp.min}
-                  tip={getForecastTip(day)}
-                />
-              ))}
-            </motion.div>
-
-            {/* Farming Advice */}
-            <motion.div variants={itemVariants} className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 sm:p-8">
-              <h3 className="text-2xl font-orbitron font-bold mb-4">Farming Advice</h3>
-              <ul className="list-disc list-inside space-y-2 text-emerald-200">
-                {farmingAdvice.map((advice, index) => <li key={index}>{advice}</li>)}
-              </ul>
-            </motion.div>
-          </motion.div>
-        )}
-      </motion.div>
+          <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700">
+            <div className="font-semibold">Farming Advice</div>
+            <ul className="list-disc list-inside mt-2 text-slate-300">
+              {renderAdvice(payload.current, payload.daily)?.length ? renderAdvice(payload.current, payload.daily).map((a,i)=>(<li key={i}>{a}</li>)) : <li>All good — monitor conditions.</li>}
+            </ul>
+          </div>
+        </section>
+      )}
     </div>
   );
-};
-
-const MetricCard = ({ icon, title, value }) => (
-  <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-4 flex flex-col items-center justify-center text-center">
-    <div className="text-cyan-300 mb-2">{React.cloneElement(icon, { size: 32 })}</div>
-    <p className="text-gray-300 text-sm">{title}</p>
-    <p className="text-xl font-bold">{value}</p>
-  </div>
-);
-
-const getForecastTip = (day) => {
-    if (day.temp.max > 35) return "High heat stress. Ensure adequate water.";
-    if ((day.rain || 0) > 5) return "Rain expected. Check drainage."; // rain is in mm
-    if (day.wind_speed > 8) return "Windy. Protect young plants.";
-    if (day.humidity > 80) return "High humidity. Watch for fungus.";
-    return "Conditions look stable.";
 }
-
-export default WeatherInsights;

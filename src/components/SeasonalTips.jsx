@@ -7,8 +7,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import getWeather from 'msn-weather';
 import { CheckCircle, Info, Bell } from 'lucide-react';
 import { SEASONAL_DATA } from '../data/seasonal';
+import WeatherCard from './WeatherCard';
 
 const TaskItem = ({ task, cropId, month }) => {
   const taskId = `${cropId}-${month}-${task.task}`;
@@ -37,6 +39,29 @@ const TaskItem = ({ task, cropId, month }) => {
 const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
   const { t, i18n } = useTranslation();
   const tips = SEASONAL_DATA.tips[crop.id] || {};
+  const [weatherData, setWeatherData] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setWeatherLoading(true);
+      try {
+        const data = await getWeather({
+          city: 'Pune', // Hardcoded for now, can be dynamic
+          lang: i18n.language,
+          degreeType: 'C'
+        });
+        setWeatherData(data);
+      } catch (error) {
+        console.error("Failed to fetch weather data:", error);
+        setWeatherData(null); // Clear previous data on error
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+  }, [i18n.language]);
 
   if (isLoading) {
     return (
@@ -52,6 +77,11 @@ const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
 
   return (
     <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="mb-6">
+        <h3 className="font-semibold text-gray-300 mb-3 text-lg">Weather Insights</h3>
+        <WeatherCard weatherData={weatherData} isLoading={weatherLoading} />
+      </div>
+
       <h2 className="text-xl font-bold mb-4">Tasks & Tips for {month}</h2>
       
       <div className="space-y-3 mb-6">

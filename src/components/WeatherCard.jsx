@@ -1,32 +1,25 @@
-// src/components/WeatherCard.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
-const WeatherCard = ({ day, icon, minTemp, maxTemp, tip }) => {
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
-
+/**
+ Props:
+  - date (YYYY-MM-DD)
+  - min
+  - max
+  - pop (0..1)
+  - tip (string)
+*/
+export default function WeatherCard({ date, min, max, pop, tip }) {
+  const d = new Date(date);
+  const day = d.toLocaleDateString(undefined, { weekday: "short" }); // Mon, Tue
   return (
-    <motion.div
-      variants={cardVariants}
-      className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 text-white shadow-lg 
-                 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-    >
-      <h3 className="text-xl font-bold text-center font-orbitron">{day}</h3>
-      <img 
-        src={`https://openweathermap.org/img/wn/${icon}@2x.png`} 
-        alt="weather icon" 
-        className="w-20 h-20 mx-auto" 
-      />
-      <div className="text-center my-2">
-        <span className="text-lg font-semibold">{Math.round(maxTemp)}°</span>
-        <span className="text-gray-300 ml-2">{Math.round(minTemp)}°</span>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }} className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700 shadow-md min-w-[160px]">
+      <div className="flex items-center justify-between">
+        <div className="font-semibold">{day}</div>
+        <div className="text-sm text-slate-400">{Math.round(pop*100)}%</div>
       </div>
-      <p className="text-xs text-center text-cyan-200 h-10">{tip}</p>
+      <div className="mt-3 text-lg font-bold">{Math.round(max)}° / <span className="text-sm font-medium">{Math.round(min)}°</span></div>
+      <div className="text-xs text-slate-300 mt-2">{tip}</div>
     </motion.div>
   );
-};
-
-export default WeatherCard;
+}
