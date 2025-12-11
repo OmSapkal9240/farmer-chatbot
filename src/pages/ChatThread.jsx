@@ -2,21 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { askLLM } from '../lib/chatApi';
-
-// Demo responses
-const demoReplies = {
-  default: "This is a demo response. For a real answer, please provide an API key.",
-  crop: "Demo: For tomatoes, ensure they get 6-8 hours of sunlight and are watered deeply once a week.",
-  pest: "Demo: To control aphids, you can spray plants with a solution of water and a few drops of dish soap.",
-};
-
-const getDemoReply = (message) => {
-  const lowerMsg = message.toLowerCase();
-  if (lowerMsg.includes('tomato') || lowerMsg.includes('crop')) return demoReplies.crop;
-  if (lowerMsg.includes('pest') || lowerMsg.includes('aphid')) return demoReplies.pest;
-  return demoReplies.default;
-};
+import { createSystemPrompt } from '../lib/context';
 
 export default function ChatThread() {
   const { chatId } = useParams();
@@ -66,30 +52,40 @@ export default function ChatThread() {
     if (inputValue.trim() === '' || isProcessing) return;
 
     const userMessage = { role: 'user', content: inputValue };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputValue('');
     setIsProcessing(true);
     setError(null);
 
     try {
-      const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
-      const response = await askLLM(history);
-      const botMessage = { role: 'assistant', content: response.choices[0].message.content };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (err) {
-      const message = err.message.toLowerCase();
-      if (message.includes('missing')) {
-        setError({ type: 'API_KEY_MISSING', message: 'API key missing. Set VITE_GROQ_API_KEY in your environment.' });
-      } else if (message.includes('invalid')) {
-        setError({ type: 'INVALID_API_KEY', message: 'Invalid API key.' });
-      } else {
-        setError({ type: 'NETWORK_ERROR', message: 'Network error. Please try again.' });
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          "model": "openai/gpt-4o-mini",
+          "messages": [createSystemPrompt(), ...newMessages.map(({ role, content }) => ({ role, content }))]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'An unknown error occurred.');
       }
+
+      const data = await response.json();
+      const botMessage = data.choices[0].message;
+      setMessages((prev) => [...prev, botMessage]);
+
+    } catch (err) {
+      setError({ type: 'API_ERROR', message: err.message || 'Failed to get response from AI.' });
     } finally {
       setIsProcessing(false);
     }
-
-  }, [inputValue, isProcessing, chatId]);
+  }, [inputValue, isProcessing, messages, chatId]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start:client": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -15,7 +14,6 @@
     "@tensorflow-models/mobilenet": "^2.1.1",
     "@tensorflow/tfjs": "^4.22.0",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
     "framer-motion": "^10.18.0",
     "i18next": "^25.7.1",
     "lucide-react": "^0.292.0",
