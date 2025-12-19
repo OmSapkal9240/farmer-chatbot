@@ -69,6 +69,11 @@ const ChatBox = () => {
       } else {
         const history = [...messages, userMessage].map(({ role, content }) => ({ role, content }));
         response = await askLLM(history);
+        if (response.demo_mode) {
+          console.log('Server instructed to use demo mode.');
+          setUseDemo(true);
+          response = { choices: [{ message: { content: getDemoReply(userMessage.content) } }] };
+        }
       }
       const botMessage = { role: 'assistant', content: response.choices[0].message.content };
       setMessages((prev) => [...prev, botMessage]);

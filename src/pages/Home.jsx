@@ -2,12 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Rocket } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
 
 const modules = [
   { icon: '🌾', title: 'Crop Care', desc: 'Get tailored crop advice.', path: '/crop-care' },
-  { icon: '⛅', title: 'Weather Insights', desc: 'Check local forecasts.', path: '/weather-insights' },
+  { icon: '⛅', title: 'Weather Insights', desc: 'Check local forecasts.', path: '/weather' },
   { icon: '🐛', title: 'Pest Diagnosis', desc: 'Identify and treat pests.', path: '/pest-diagnosis' },
   { icon: '📅', title: 'Seasonal Advice', desc: 'Plan for the season.', path: '/seasonal-advice' },
   { icon: '🏛️', title: 'Govt Schemes', desc: 'Find relevant schemes.', path: '/govt-schemes' },
@@ -28,6 +29,7 @@ const FloatingFarmIcon = () => (
 
 export default function Home() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const startChat = () => {
     const id = Date.now().toString();
@@ -47,10 +49,11 @@ export default function Home() {
           transition={{ duration: 0.7 }}
         >
           <div 
-            className="relative w-full max-w-4xl mx-auto aspect-video bg-slate-900/50 rounded-3xl shadow-2xl overflow-hidden border border-slate-700 mb-12 animate-float-subtle"
+            className="relative w-full max-w-4xl mx-auto aspect-video bg-slate-900/50 rounded-3xl shadow-2xl overflow-hidden border border-slate-700 mb-12"
           >
              <div className="absolute -inset-8 bg-gradient-to-r from-green-500/30 to-cyan-500/30 rounded-full blur-3xl opacity-60"></div>
-             <div className="flex items-center justify-center h-full text-slate-500">Video/Image Placeholder</div>
+             <img src="/models/hero-image.jpg" alt="A vibrant image of farmers working in a lush green field under a clear sky, representing modern agriculture."
+              className="w-full h-full object-cover" />
           </div>
           <div className="relative">
             <div className="absolute -inset-x-8 -top-4 h-32 bg-gradient-to-t from-transparent to-emerald-900/30 blur-3xl"></div>
@@ -58,20 +61,22 @@ export default function Home() {
               style={{ fontFamily: "'Orbitron', sans-serif" }}
               className="text-4xl md:text-5xl font-bold mb-4 gradient-text animate-hue-shift"
             >
-              Your AI Farming Assistant
+              {t('home.title')}
             </h2>
             <p className="max-w-2xl mx-auto text-lg text-slate-300 mb-8">
-              Get instant, reliable advice on crops, weather, and more. Start a conversation to get the help you need.
+              {t('home.subtitle')}
             </p>
           </div>
-          <div className="mt-10">
-            <button 
+          <div className="mt-10 flex justify-center">
+            <motion.button 
               onClick={startChat}
-              className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-lg hover:shadow-cyan-400/40 hover:scale-105 transition-all duration-300 flex items-center space-x-3"
-            >
+              className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-lg hover:shadow-cyan-400/40 flex items-center space-x-3"
+              whileHover={{ scale: 1.1, transition: { type: 'spring', stiffness: 300 } }}
+              whileTap={{ scale: 0.9 }}
+                          >
               <Rocket size={22} />
-              <span>Start a New Chat</span>
-            </button>
+              <span>{t('home.cta')}</span>
+            </motion.button>
           </div>
         </motion.div>
       </section>
