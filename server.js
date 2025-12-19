@@ -1,0 +1,88 @@
+import express from 'express';
+import multer from 'multer';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { OpenRouter } from '@openrouter/sdk';
+import cors from 'cors';
+
+process.on('uncaughtException', (error, origin) => {
+  console.error('===== UNCAUGHT EXCEPTION =====');
+  console.error('Origin:', origin);
+  console.error('Error:', error);
+  process.exit(1);
+});
+
+const app = express();
+const port = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+const GEMINI_API_KEY = "AIzaSyCz74senWA4eL71Loof2zM_4GFSMWUsA";
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const OPENROUTER_API_KEY = "<PUT_OPENROUTER_API_KEY_HERE>";
+const openrouter = new OpenRouter({
+  apiKey: OPENROUTER_API_KEY,
+});
+const upload = multer({ storage: multer.memoryStorage() });
+
+async function fileToGenerativePart(file) {
+  return {
+    inlineData: {
+      data: file.buffer.toString('base64'),
+      mimeType: file.mimetype,
+    },
+  };
+}
+
+app.post('/api/diagnose', upload.single('image'), async (req, res) => {
+  console.log('[SERVER] Received request for /api/diagnose');
+  try {
+    const file = req.file;
+    if (!file) {
+      console.error('[SERVER] No image file found in the request.');
+      return res.status(400).json({ error: 'No image file found' });
+    }
+    console.log(`[SERVER] Image received: ${file.fieldname}, size: ${file.size}`);
+
+    // Bypassing Gemini API for debugging. Returning a mock success response.
+    console.log('[SERVER] Bypassing Gemini API and sending mock response.');
+    const mockDiagnosis = 'Diagnosis: Mock Success!\n\nTreatment Options: This is a test response. If you see this, the application is working correctly, but the Gemini API key is invalid.';
+    res.json({ diagnosis: mockDiagnosis });
+  } catch (err) {
+    console.error('Gemini API Error:', err.message || err);
+    if (err.response) {
+      console.error('Gemini API Response:', err.response.data);
+    }
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { messages } = req.body;
+    if (OPENROUTER_API_KEY === '<PUT_OPENROUTER_API_KEY_HERE>') {
+      console.log('[SERVER] OpenRouter API key is a placeholder. Instructing client to use demo mode.');
+      return res.json({ demo_mode: true });
+    }
+
+    const response = await openrouter.chat.completions.create({
+      model: 'openai/gpt-4o-mini',
+      messages,
+    });
+    res.json(response);
+  } catch (err) {
+    console.error('OpenRouter Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('===== GLOBAL ERROR HANDLER =====');
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});

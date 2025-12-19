@@ -10,7 +10,8 @@ const modules = [
   { name: 'Pest / Disease Diagnosis', path: '/pest-diagnosis' },
   { name: 'Seasonal Advice', path: '/seasonal-advice' },
   { name: 'Government Schemes', path: '/govt-schemes' },
-  { name: 'WhatsApp / SMS Access', path: '/whatsapp-sms' },
+    { name: 'WhatsApp / SMS Access', path: '/whatsapp-sms' },
+  { name: 'Jobs', path: '/jobs' },
 ];
 
 const FeatureMenu = () => {
@@ -33,7 +34,7 @@ const FeatureMenu = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-56 bg-slate-800/80 backdrop-blur-lg rounded-xl shadow-lg border border-slate-700 overflow-hidden"
+            className="absolute right-0 mt-2 w-56 bg-slate-800/95 rounded-xl shadow-lg border border-slate-700 overflow-hidden"
           >
             <ul className="py-1">
               {modules.map((module) => (

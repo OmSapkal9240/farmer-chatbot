@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import ModulePage from './pages/ModulePage';
-import CropCarePage from './components/CropCarePage';
-import PestDiagnosisPage from './pages/PestDiagnosisPage';
-import SeasonalAdvicePage from './pages/SeasonalAdvicePage';
-import GovtSchemesPage from './pages/GovtSchemesPage';
-import ChatThread from './pages/ChatThread';
 import OrbitBackground from './components/OrbitBackground';
-import WeatherInsights from './pages/WeatherInsights';
+
+const Home = lazy(() => import('./pages/Home'));
+const ModulePage = lazy(() => import('./pages/ModulePage'));
+const CropCarePage = lazy(() => import('./components/CropCarePage'));
+const PestDiagnosisPage = lazy(() => import('./pages/PestDiagnosisPage'));
+const SeasonalAdvicePage = lazy(() => import('./pages/SeasonalAdvicePage'));
+const GovtSchemesPage = lazy(() => import('./pages/GovtSchemesPage'));
+const ChatThread = lazy(() => import('./pages/ChatThread'));
+const WeatherInsights = lazy(() => import('./pages/WeatherInsights'));
+const JobsPage = lazy(() => import('./pages/JobsPage'));
 
 function App() {
   const location = useLocation();
@@ -21,16 +23,19 @@ function App() {
       {!isChatPage && <OrbitBackground />}
       {!isChatPage && <Navbar />}
       <main className={`${isChatPage ? '' : 'relative z-10'}`}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/chat/:chatId" element={<ChatThread />} />
-          <Route path="/crop-care" element={<CropCarePage />} />
-          <Route path="/weather" element={<WeatherInsights />} />
-          <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
-          <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
-          <Route path="/govt-schemes" element={<GovtSchemesPage />} />
-          <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
-        </Routes>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/chat/:chatId" element={<ChatThread />} />
+            <Route path="/crop-care" element={<CropCarePage />} />
+            <Route path="/weather" element={<WeatherInsights />} />
+            <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
+            <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
+            <Route path="/govt-schemes" element={<GovtSchemesPage />} />
+            <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
+            <Route path="/jobs" element={<JobsPage />} />
+          </Routes>
+        </Suspense>
       </main>
       {!isChatPage && <Footer />}
     </div>
