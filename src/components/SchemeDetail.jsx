@@ -54,14 +54,14 @@ const SchemeDetail = ({ scheme }) => {
         <span className="px-3 py-1 text-xs font-bold bg-green-600 text-white rounded-full">Active</span>
       </div>
 
-      <div className="flex flex-wrap gap-2 my-4">
-        <a href={scheme.officialLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            <div className="flex flex-wrap gap-2 my-4">
+        <a href={scheme.officialLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2 px-4 bg-green-500 text-white rounded-lg font-bold transition-colors duration-200 hover:bg-green-600">
           <ExternalLink size={16} /> Official Page
         </a>
-        <button onClick={handleSave} className="btn-secondary"><Save size={16} /> Save Scheme</button>
-        <button onClick={handleDownload} className="btn-secondary"><Download size={16} /> Download</button>
-        <button className="btn-secondary"><Share2 size={16} /> Share</button>
-        <button className="btn-secondary"><Bell size={16} /> Notify Me</button>
+        <button onClick={handleSave} className="inline-flex items-center gap-2 py-2 px-4 bg-slate-600 text-white rounded-lg font-bold transition-colors duration-200 hover:bg-slate-500"><Save size={16} /> Save Scheme</button>
+        <button onClick={handleDownload} className="inline-flex items-center gap-2 py-2 px-4 bg-slate-600 text-white rounded-lg font-bold transition-colors duration-200 hover:bg-slate-500"><Download size={16} /> Download</button>
+        <button className="inline-flex items-center gap-2 py-2 px-4 bg-slate-600 text-white rounded-lg font-bold transition-colors duration-200 hover:bg-slate-500"><Share2 size={16} /> Share</button>
+        <button className="inline-flex items-center gap-2 py-2 px-4 bg-slate-600 text-white rounded-lg font-bold transition-colors duration-200 hover:bg-slate-500"><Bell size={16} /> Notify Me</button>
       </div>
 
       <div className="border-b border-gray-700 mb-4">
@@ -86,17 +86,7 @@ const SchemeDetail = ({ scheme }) => {
         {renderTabContent()}
       </div>
 
-      <style jsx>{`
-        .btn-primary {
-          display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background-color: #10B981; color: white; border-radius: 0.5rem; font-weight: bold; transition: background-color 0.2s;
-        }
-        .btn-primary:hover { background-color: #059669; }
-        .btn-secondary {
-          display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background-color: #4B5563; color: white; border-radius: 0.5rem; font-weight: bold; transition: background-color 0.2s;
-        }
-        .btn-secondary:hover { background-color: #6B7280; }
-      `}</style>
-    </div>
+          </div>
   );
 };
 

@@ -1,12 +1,12 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import useTranslation from '../hooks/useTranslation';
 
 const Footer = () => {
-  const { t } = useTranslation();
+  const { translatedText: footerText } = useTranslation('© 2025 Farmer Advisory AI — Built for TechFiesta Hackathon');
   return (
     <footer className="bg-transparent text-center py-6">
       <p className="text-sm text-slate-500">
-        {t('footerText')}
+        {footerText}
       </p>
     </footer>
   );

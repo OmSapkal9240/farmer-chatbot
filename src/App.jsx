@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import { LanguageProvider } from './context/LanguageContext';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,26 +20,28 @@ function App() {
   const isChatPage = location.pathname.startsWith('/chat/');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
-      {!isChatPage && <OrbitBackground />}
-      {!isChatPage && <Navbar />}
-      <main className={`${isChatPage ? '' : 'relative z-10'}`}>
-        <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/chat/:chatId" element={<ChatThread />} />
-            <Route path="/crop-care" element={<CropCarePage />} />
-            <Route path="/weather" element={<WeatherInsights />} />
-            <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
-            <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
-            <Route path="/govt-schemes" element={<GovtSchemesPage />} />
-            <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
-            <Route path="/jobs" element={<JobsPage />} />
-          </Routes>
-        </Suspense>
-      </main>
-      {!isChatPage && <Footer />}
-    </div>
+    <LanguageProvider>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
+        {!isChatPage && <OrbitBackground />}
+        {!isChatPage && <Navbar />}
+        <main className={`${isChatPage ? '' : 'relative z-10'}`}>
+          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/chat/:chatId" element={<ChatThread />} />
+              <Route path="/crop-care" element={<CropCarePage />} />
+              <Route path="/weather" element={<WeatherInsights />} />
+              <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
+              <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
+              <Route path="/govt-schemes" element={<GovtSchemesPage />} />
+              <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
+              <Route path="/jobs" element={<JobsPage />} />
+            </Routes>
+          </Suspense>
+        </main>
+        {!isChatPage && <Footer />}
+      </div>
+    </LanguageProvider>
   );
 }
 

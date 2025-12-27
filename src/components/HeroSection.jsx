@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
+import useTranslation from '../hooks/useTranslation';
 
 const HeroSection = () => {
-  const { t } = useTranslation();
+    const { translatedText: heroSlogan } = useTranslation('Helping Indian Farmers with Smart, Simple, Multilingual Advisory.');
+  const { translatedText: getStarted } = useTranslation('Get Started');
   const scrollToChat = () => {
     document.getElementById('chat-section')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -35,7 +36,7 @@ const HeroSection = () => {
         transition={{ duration: 0.7, delay: 0.2 }}
         className="mt-16 mb-6 text-2xl md:text-3xl font-semibold text-slate-200 max-w-3xl mx-auto tracking-tight"
       >
-        {t('heroSlogan')}
+        {heroSlogan}
       </motion.h2>
 
       <motion.div
@@ -48,7 +49,7 @@ const HeroSection = () => {
           onClick={scrollToChat}
           className="bg-gradient-to-r from-blue-600 to-green-500 hover:from-blue-700 hover:to-green-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 shadow-lg hover:shadow-blue-500/50"
         >
-          {t('getStarted')}
+          {getStarted}
         </button>
       </motion.div>
     </div>

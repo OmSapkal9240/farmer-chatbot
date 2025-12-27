@@ -41,5 +41,10 @@ body {
   pointer-events: none;
 }
 
+.weather-container {
+  background: linear-gradient(180deg, #1a2a45, #12182d);
+  min-height: 100vh;
+}
+
 ::-webkit-scrollbar { height: 8px; width: 10px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 999px; }

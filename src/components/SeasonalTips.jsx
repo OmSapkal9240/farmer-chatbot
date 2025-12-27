@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import getWeather from 'msn-weather';
+import { getWeather } from '../utils/weather';
 import { CheckCircle, Info, Bell } from 'lucide-react';
 import { SEASONAL_DATA } from '../data/seasonal';
 import WeatherCard from './WeatherCard';
@@ -46,11 +46,7 @@ const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
     const fetchWeather = async () => {
       setWeatherLoading(true);
       try {
-        const data = await getWeather({
-          city: 'Pune', // Hardcoded for now, can be dynamic
-          lang: i18n.language,
-          degreeType: 'C'
-        });
+        const data = await getWeather('Pune'); // Hardcoded for now, can be dynamic
         setWeatherData(data);
       } catch (error) {
         console.error("Failed to fetch weather data:", error);

@@ -3,28 +3,23 @@ import { Loader, UploadCloud, X, Bug } from 'lucide-react';
 
 // A component to format the diagnosis text
 const FormattedDiagnosis = ({ text }) => {
-  if (!text || !text.trim()) {
-    return (
-      <div>
-        <h3 className="font-bold text-lg text-yellow-400 mb-2">Analysis Complete</h3>
-        <p className="text-gray-300">The analysis did not return a specific diagnosis. This may be due to image quality or the AI's content safety filters. Please try a different image.</p>
-      </div>
-    );
-  }
+  if (!text) return null;
 
-  // Simple parser to format the response
-  const sections = text.split(/(Diagnosis:|Treatment Options:)/).filter(Boolean);
-  const formatted = [];
+  // Use a regex to split the text by the numbered headings, keeping the delimiters
+    const sections = text.split(/(\d+\.\s+\*\*[🌾🦠🔍❓✅🛡️📌].*?\*\*)/).filter(Boolean);
+
+  const formattedSections = [];
   for (let i = 0; i < sections.length; i += 2) {
-    const title = sections[i];
-    const content = sections[i + 1];
-    if (title && content) {
-      formatted.push({ title: title.trim(), content: content.trim() });
+    if (sections[i] && sections[i+1]) {
+      formattedSections.push({
+        title: sections[i].trim(),
+        content: sections[i+1].trim(),
+      });
     }
   }
 
-  // Fallback for when parsing fails, to ensure a result is always displayed.
-  if (formatted.length === 0) {
+  if (formattedSections.length === 0) {
+    // Fallback for unstructured responses
     return (
       <div>
         <h3 className="font-bold text-lg text-green-400 mb-2">Diagnosis Result</h3>
@@ -35,45 +30,39 @@ const FormattedDiagnosis = ({ text }) => {
 
   return (
     <div className="space-y-4 text-left">
-      {formatted.map(({ title, content }) => (
+      {formattedSections.map(({ title, content }) => (
         <div key={title}>
           <h3 className="font-bold text-lg text-green-400 mb-2">{title}</h3>
-          <p className="text-gray-300 whitespace-pre-wrap">{content}</p>
+          <p className="text-gray-300 whitespace-pre-wrap">{content.replace(/\*\*/g, '').replace(/\*/g, '•')}</p>
         </div>
       ))}
     </div>
   );
 };
 
-
 const PestDiagnosisPage = () => {
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
+  const GROQ_API_KEY = "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";
+
+  const [cropName, setCropName] = useState('');
+  const [problem, setProblem] = useState('');
+  const [location, setLocation] = useState('');
+    const [diagnosis, setDiagnosis] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
-      setDiagnosis('');
-      setError('');
-    }
-  };
-
-  const handleClear = () => {
-    setImage(null);
-    setImagePreview('');
-    setDiagnosis('');
+  
+    const handleClear = () => {
+    setCropName('');
+    setProblem('');
+    setLocation('');
+        setDiagnosis('');
     setError('');
   };
 
-  const handleSubmit = async (e) => {
+      const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!image) {
-      setError('Please select an image first.');
+        if (!problem || !cropName) {
+      setError('Please provide a crop name and a problem description.');
       return;
     }
 
@@ -81,31 +70,76 @@ const PestDiagnosisPage = () => {
     setError('');
     setDiagnosis('');
 
-    const formData = new FormData();
-    formData.append('image', image);
-
     try {
-      const response = await fetch('http://localhost:3000/api/diagnose', {
+      
+      
+            const systemPrompt = `You are an expert agricultural assistant specializing in Indian farming conditions. Based *only* on the user's text description, your goal is to provide a comprehensive and easy-to-understand diagnosis for a farmer. Follow this structure exactly, using markdown for formatting:
+
+1.  **🌾 Crop Identified**:
+    -   **Crop:** [Crop Name]
+    -   **Growth Stage:** [e.g., Seedling, Vegetative, Flowering, Fruiting - if discernible from description]
+
+2.  **🦠 Disease / Pest Identified**:
+    -   **Name:** [Common Name]
+    -   **Type:** [Fungal / Bacterial / Viral / Insect / Nutrient Deficiency]
+
+3.  **🔍 Symptoms**:
+    -   **Visible Signs:** [Describe the symptoms based on the user's text]
+    -   **How to Recognize:** [Simple field identification tips for the farmer]
+
+4.  **❓ Cause**:
+    -   **Primary Reason:** [Explain the main cause, e.g., high humidity, specific pest lifecycle]
+    -   **Contributing Conditions:** [Weather, soil, or farming practices that help it spread]
+
+5.  **✅ Treatment & Solution**:
+    -   **A) Organic / Natural Control:**
+        -   **Method:** [e.g., Neem oil spray, introducing beneficial insects]
+        -   **Dosage & Frequency:** [e.g., Mix 5ml per liter of water, spray every 7 days]
+    -   **B) Chemical Control:**
+        -   **Recommended Product:** [Suggest a common, effective pesticide/fungicide, e.g., Mancozeb, Imidacloprid]
+        -   **Safety Precautions:** [Crucial safety advice: wear gloves, mask, and follow label instructions]
+
+6.  **🛡️ Prevention Tips**:
+    -   [List 2-3 actionable tips like crop rotation, proper spacing, field hygiene, or monitoring]
+
+7.  **📌 Final Farmer Advice**:
+    -   [Provide a clear, simple summary and actionable next steps for the farmer.]
+
+If the description is unclear, state that and ask for more information, but provide a potential diagnosis based on the available information. Do not mention images.`;
+
+      const userMessages = [
+        {
+          type: 'text',
+          text: `Crop: ${cropName}. Location: ${location || 'Not provided'}. Problem: ${problem}`,
+        },
+      ];
+
+      
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'llama3-8b-8192',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessages },
+          ],
+          max_tokens: 2048,
+        }),
       });
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status}. Server response: ${errorBody}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
       }
 
-      console.log('API response received:', response);
       const data = await response.json();
-      console.log('Parsed JSON data:', data);
+      const text = data.choices[0].message.content;
+      setDiagnosis(text);
 
-      if (data.error) {
-        console.error('API returned an error:', data.error);
-        throw new Error(data.error);
-      }
-
-      console.log('Setting diagnosis state with:', data.diagnosis);
-      setDiagnosis(data.diagnosis);
     } catch (err) {
       console.error('Diagnosis error:', err);
       setError(`Failed to get diagnosis. ${err.message}`);
@@ -121,38 +155,28 @@ const PestDiagnosisPage = () => {
         <p className="text-gray-400 mt-2 max-w-2xl mx-auto">Upload an image of the affected crop to get an instant AI-powered diagnosis and treatment recommendation.</p>
       </header>
 
-      <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-slate-700">
+            <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-slate-700">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="image-upload" className="block text-sm font-medium text-gray-300 mb-2">Crop Image</label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-600 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <UploadCloud className="mx-auto h-12 w-12 text-slate-500" />
-                <div className="flex text-sm text-slate-400">
-                  <label htmlFor="image-upload" className="relative cursor-pointer bg-slate-700 rounded-md font-medium text-green-400 hover:text-green-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-slate-800 focus-within:ring-green-500 px-2">
-                    <span>Upload a file</span>
-                    <input id="image-upload" name="image-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageChange} />
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs text-slate-500">PNG, JPG, GIF up to 10MB</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="crop-name" className="block text-sm font-medium text-gray-300 mb-2">Crop Name</label>
+              <input type="text" id="crop-name" value={cropName} onChange={(e) => setCropName(e.target.value)} className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder="e.g., Tomato, Cotton" />
+            </div>
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-300 mb-2">Location (Optional)</label>
+              <input type="text" id="location" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder="e.g., Nashik, Maharashtra" />
             </div>
           </div>
 
-          {imagePreview && (
-            <div className="relative group">
-              <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg max-h-80 mx-auto" />
-              <button type="button" onClick={handleClear} className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white hover:bg-black/80 transition-opacity opacity-0 group-hover:opacity-100">
-                <X size={18} />
-              </button>
-            </div>
-          )}
+                    <div>
+            <label htmlFor="problem-description" className="block text-sm font-medium text-gray-300 mb-2">Problem Description</label>
+            <textarea id="problem-description" value={problem} onChange={(e) => setProblem(e.target.value)} rows="4" className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder="Describe the issue in detail, e.g., 'The tomato leaves have yellow spots with brown centers, and the lower leaves are wilting.'" required></textarea>
+          </div>
 
           <div className="flex justify-center">
             <button
               type="submit"
-              disabled={!image || isLoading}
+              disabled={!problem || !cropName || isLoading}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-green-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? <><Loader className="animate-spin -ml-1 mr-3 h-5 w-5" /> Analyzing...</> : <><Bug className="-ml-1 mr-2 h-5 w-5" /> Diagnose Pest</>}
