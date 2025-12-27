@@ -7,12 +7,12 @@ import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
 
 const modules = [
-  { icon: '🌾', title: 'Crop Care', desc: 'Get tailored crop advice.', path: '/crop-care' },
-  { icon: '⛅', title: 'Weather Insights', desc: 'Check local forecasts.', path: '/weather' },
-  { icon: '🐛', title: 'Pest Diagnosis', desc: 'Identify and treat pests.', path: '/pest-diagnosis' },
-  { icon: '📅', title: 'Seasonal Advice', desc: 'Plan for the season.', path: '/seasonal-advice' },
-  { icon: '🏛️', title: 'Govt Schemes', desc: 'Find relevant schemes.', path: '/govt-schemes' },
-  { icon: '📲', title: 'WhatsApp/SMS', desc: 'Connect via messaging.', path: '/whatsapp-sms' },
+  { icon: '🌾', titleKey: 'home.modules.crop_care.title', descKey: 'home.modules.crop_care.desc', path: '/crop-care' },
+  { icon: '⛅', titleKey: 'home.modules.weather_insights.title', descKey: 'home.modules.weather_insights.desc', path: '/weather' },
+  { icon: '🐛', titleKey: 'home.modules.pest_diagnosis.title', descKey: 'home.modules.pest_diagnosis.desc', path: '/pest-diagnosis' },
+  { icon: '📅', titleKey: 'home.modules.seasonal_advice.title', descKey: 'home.modules.seasonal_advice.desc', path: '/seasonal-advice' },
+  { icon: '🏛️', titleKey: 'home.modules.govt_schemes.title', descKey: 'home.modules.govt_schemes.desc', path: '/govt-schemes' },
+  { icon: '📲', titleKey: 'home.modules.whatsapp_sms.title', descKey: 'home.modules.whatsapp_sms.desc', path: '/whatsapp-sms' },
 ];
 
 const FloatingFarmIcon = () => (
@@ -34,7 +34,7 @@ export default function Home() {
   const startChat = () => {
     const id = Date.now().toString();
     const chats = JSON.parse(localStorage.getItem("chat_sessions") || "[]");
-    chats.unshift({ id, title: "New Chat", messages: [{role:"assistant", content:"Namaskar! How can I help?"}] });
+    chats.unshift({ id, title: t('chat.new_chat'), messages: [{role:"assistant", content:t('chat.welcome_message')}] });
     localStorage.setItem("chat_sessions", JSON.stringify(chats));
     navigate(`/chat/${id}`);
   };
@@ -87,7 +87,7 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {modules.map((mod, i) => (
             <Link to={mod.path} key={i}>
-              <ModuleCard {...mod} delay={i} />
+              <ModuleCard icon={mod.icon} title={t(mod.titleKey)} desc={t(mod.descKey)} delay={i} />
             </Link>
           ))}
         </div>

@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCoordinatesForPin, getWeatherForecast, getSeasonalAdvice } from '../utils/api';
 import { MONTHS } from '../utils/seasonUtils';
 import { SEASONAL_DATA } from '../data/seasonal';
@@ -14,6 +15,7 @@ import SeasonalCalendar from '../components/SeasonalCalendar';
 import SeasonalTips from '../components/SeasonalTips';
 
 const SeasonalAdvicePage = () => {
+  const { t, i18n } = useTranslation();
   const [selectedCrop, setSelectedCrop] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
   const [pin, setPin] = useState('');
@@ -23,11 +25,11 @@ const SeasonalAdvicePage = () => {
 
   const handleGetAdvice = useCallback(async () => {
     if (!selectedCrop) {
-      setError('Please select a crop.');
+      setError(t('seasonal.error.no_crop'));
       return;
     }
     if (pin.length !== 6) {
-      setError('Please enter a valid 6-digit PIN code.');
+      setError(t('seasonal.error.invalid_pin'));
       return;
     }
     setIsLoading(true);
@@ -36,12 +38,16 @@ const SeasonalAdvicePage = () => {
       const { latitude, longitude, name: region } = await getCoordinatesForPin(pin);
       const weatherData = await getWeatherForecast(latitude, longitude, selectedMonth);
 
-      const weatherSummary = `Based on last year's data: Average temperature range: ${Math.min(...weatherData.temperature_2m_min).toFixed(1)}°C to ${Math.max(...weatherData.temperature_2m_max).toFixed(1)}°C. Total precipitation: ${weatherData.precipitation_sum.reduce((a, b) => a + b, 0).toFixed(1)}mm.`;
+      const weatherSummary = t('seasonal.weather_summary', {
+        minTemp: Math.min(...weatherData.temperature_2m_min).toFixed(1),
+        maxTemp: Math.max(...weatherData.temperature_2m_max).toFixed(1),
+        precip: weatherData.precipitation_sum.reduce((a, b) => a + b, 0).toFixed(1)
+      });
 
-      const aiAdvice = await getSeasonalAdvice(selectedCrop, region, selectedMonth, weatherSummary);
+      const aiAdvice = await getSeasonalAdvice(selectedCrop, region, selectedMonth, weatherSummary, i18n.language);
       setAdvice(aiAdvice);
     } catch (err) {
-      setError(err.message || 'An unexpected error occurred.');
+      setError(err.message || t('seasonal.error.unexpected'));
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +64,8 @@ const SeasonalAdvicePage = () => {
     return (
     <div className="container mx-auto p-4 md:p-6 bg-gray-900 text-white rounded-lg">
       <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-green-400">Seasonal Farming Advice</h1>
-        <p className="text-gray-400 mt-2">Your monthly guide to optimal crop management.</p>
+        <h1 className="text-4xl font-bold text-green-400">{t('seasonal.title')}</h1>
+        <p className="text-gray-400 mt-2">{t('seasonal.subtitle')}</p>
       </header>
 
       <div>
@@ -71,10 +77,10 @@ const SeasonalAdvicePage = () => {
                 onClick={handleStartOver}
                 className="mb-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
               >
-                &larr; Start Over
+                {t('seasonal.start_over')}
               </button>
-              <h2 className="text-2xl font-bold">Farming Advice for {selectedCrop.name} in {selectedMonth}</h2>
-              <p className="text-gray-400">Location PIN: {pin}</p>
+              <h2 className="text-2xl font-bold">{t('seasonal.advice_for', { cropName: selectedCrop.name, month: selectedMonth })}</h2>
+              <p className="text-gray-400">{t('seasonal.location_pin', { pin })}</p>
             </div>
             <SeasonalTips
               crop={selectedCrop}
@@ -103,8 +109,8 @@ const SeasonalAdvicePage = () => {
                 onSelectMonth={setSelectedMonth}
               />
               <div className="mt-6 text-center p-4 bg-gray-800 rounded-lg">
-                {error && <div className="text-red-500 mb-4">Error: {error}</div>}
-                <p className="text-gray-400">Please select a crop, enter a PIN, and choose a month to get personalized advice.</p>
+                {error && <div className="text-red-500 mb-4">{t('seasonal.error.prefix')} {error}</div>}
+                <p className="text-gray-400">{t('seasonal.prompt.select_all')}</p>
               </div>
             </main>
           </div>

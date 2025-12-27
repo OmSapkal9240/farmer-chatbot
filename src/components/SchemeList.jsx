@@ -5,9 +5,11 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import SchemeCard from './SchemeCard';
 
 const SchemeList = ({ schemes, onSelectScheme, selectedSchemeId }) => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       {schemes.length > 0 ? (
@@ -20,7 +22,7 @@ const SchemeList = ({ schemes, onSelectScheme, selectedSchemeId }) => {
           />
         ))
       ) : (
-        <p className="text-gray-400 text-center py-8">No schemes match your criteria.</p>
+        <p className="text-gray-400 text-center py-8">{t('schemes.list.no_match')}</p>
       )}
     </div>
   );

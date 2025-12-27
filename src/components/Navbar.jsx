@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import FeatureMenu from './FeatureMenu';
-import LanguageSelector from './LanguageSelector';
+import LanguageSwitcher from './LanguageSwitcher';
 import AnimatedTitle from './AnimatedTitle';
 
 const Navbar = () => {
@@ -16,7 +16,7 @@ const Navbar = () => {
           </div>
           <div className="hidden md:flex items-center space-x-6">
             <FeatureMenu />
-            <LanguageSelector />
+            <LanguageSwitcher />
           </div>
           <div className="md:hidden">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white">
@@ -29,7 +29,7 @@ const Navbar = () => {
         <div className="md:hidden bg-slate-800/95 backdrop-blur-lg">
           <div className="px-4 pt-2 pb-4 space-y-4">
             <FeatureMenu />
-            <LanguageSelector />
+            <LanguageSwitcher />
           </div>
         </div>
       )}

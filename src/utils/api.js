@@ -36,7 +36,7 @@ export const getCoordinatesForPin = async (pin) => {
 
 import { OpenRouter } from "@openrouter/sdk";
 
-export const getSeasonalAdvice = async (crop, region, month, weatherSummary) => {
+export const getSeasonalAdvice = async (crop, region, month, weatherSummary, language = 'en') => {
   const openrouter = new OpenRouter({
     apiKey: import.meta.env.VITE_OPENROUTER_API_KEY_SEASONAL,
   });
@@ -45,6 +45,8 @@ export const getSeasonalAdvice = async (crop, region, month, weatherSummary) => 
     You are an expert agricultural advisor. Provide seasonal farming advice for a farmer in ${region} growing ${crop.name} during the month of ${month}.
 
     Current weather context: ${weatherSummary}
+
+    Respond ONLY in the ${language} language.
 
     Generate a structured JSON response with the following keys:
     - "weatherInsights": {{ "temperatureRange": "<min>°C - <max>°C", "rainfallLikelihood": "<Low/Medium/High>", "humidityNote": "<Brief note on humidity>" }}

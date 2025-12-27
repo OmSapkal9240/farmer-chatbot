@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { LanguageProvider } from './context/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -16,16 +16,16 @@ const WeatherInsights = lazy(() => import('./pages/WeatherInsights'));
 const JobsPage = lazy(() => import('./pages/JobsPage'));
 
 function App() {
+  const { t } = useTranslation();
   const location = useLocation();
   const isChatPage = location.pathname.startsWith('/chat/');
 
   return (
-    <LanguageProvider>
-      <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
+          <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
         {!isChatPage && <OrbitBackground />}
         {!isChatPage && <Navbar />}
         <main className={`${isChatPage ? '' : 'relative z-10'}`}>
-          <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+          <Suspense fallback={<div className="flex justify-center items-center h-screen">{t('loading')}</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/chat/:chatId" element={<ChatThread />} />
@@ -34,15 +34,14 @@ function App() {
               <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
               <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
               <Route path="/govt-schemes" element={<GovtSchemesPage />} />
-              <Route path="/whatsapp-sms" element={<ModulePage title="WhatsApp / SMS Access" />} />
+              <Route path="/whatsapp-sms" element={<ModulePage title={t('whatsapp_sms_access')} />} />
               <Route path="/jobs" element={<JobsPage />} />
             </Routes>
           </Suspense>
         </main>
         {!isChatPage && <Footer />}
       </div>
-    </LanguageProvider>
-  );
+      );
 }
 
 export default App;

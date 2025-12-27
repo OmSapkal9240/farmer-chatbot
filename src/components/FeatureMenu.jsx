@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 const modules = [
-  { name: 'Crop Care', path: '/crop-care' },
-  { name: 'Weather Insights', path: '/weather' },
-  { name: 'Pest / Disease Diagnosis', path: '/pest-diagnosis' },
-  { name: 'Seasonal Advice', path: '/seasonal-advice' },
-  { name: 'Government Schemes', path: '/govt-schemes' },
-    { name: 'WhatsApp / SMS Access', path: '/whatsapp-sms' },
-  { name: 'Jobs', path: '/jobs' },
+  { name: 'crop_care', path: '/crop-care' },
+  { name: 'weather_insights', path: '/weather' },
+  { name: 'pest_disease_diagnosis', path: '/pest-diagnosis' },
+  { name: 'seasonal_advice', path: '/seasonal-advice' },
+  { name: 'govt_schemes', path: '/govt-schemes' },
+  { name: 'whatsapp_sms_access', path: '/whatsapp-sms' },
+  { name: 'jobs', path: '/jobs' },
 ];
 
 const FeatureMenu = () => {
@@ -40,7 +40,7 @@ const FeatureMenu = () => {
               {modules.map((module) => (
                 <li key={module.name}>
                   <Link to={module.path} onClick={() => setIsOpen(false)} className="block px-4 py-2 text-sm text-white hover:bg-slate-700 transition-colors duration-200">
-                    {module.name}
+                    {t(module.name)}
                   </Link>
                 </li>
               ))}

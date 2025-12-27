@@ -6,12 +6,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getFilteredSchemes } from '../utils/schemesUtils';
 import SchemeList from '../components/SchemeList';
 import SchemeDetail from '../components/SchemeDetail';
 import SchemeFilters from '../components/SchemeFilters';
 
 const GovtSchemesPage = () => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState({ searchTerm: '', category: 'all', pin: '', crop: 'all' });
   const [sortBy, setSortBy] = useState('relevance');
   const [schemes, setSchemes] = useState([]);
@@ -30,10 +32,10 @@ const GovtSchemesPage = () => {
   return (
     <div className="container mx-auto p-4 md:p-6 bg-gray-900 text-white rounded-lg">
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-green-400">Government Schemes for Farmers</h1>
-        <p className="text-gray-400 mt-2">Find and understand schemes that can benefit you.</p>
+        <h1 className="text-4xl font-bold text-green-400">{t('schemes.title')}</h1>
+        <p className="text-gray-400 mt-2">{t('schemes.subtitle')}</p>
         <div className="mt-2 text-xs text-yellow-400 bg-yellow-900/50 p-2 rounded-md max-w-2xl mx-auto">
-          Data shown is a summary for demo purposes. Always visit official government links for full details.
+          {t('schemes.disclaimer')}
         </div>
       </header>
 
@@ -59,7 +61,7 @@ const GovtSchemesPage = () => {
             <SchemeDetail scheme={selectedScheme} />
           ) : (
             <div className="h-full flex items-center justify-center bg-gray-800 p-8 rounded-lg text-center">
-              <p className="text-gray-400">Select a scheme from the list to see the details.</p>
+              <p className="text-gray-400">{t('schemes.select_prompt')}</p>
             </div>
           )}
         </main>

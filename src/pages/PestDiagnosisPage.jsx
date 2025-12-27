@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { OpenRouter } from "@openrouter/sdk";
 import { Loader, UploadCloud, X, Bug } from 'lucide-react';
@@ -24,7 +25,7 @@ const FormattedDiagnosis = ({ text }) => {
     // Fallback for unstructured responses
     return (
       <div>
-        <h3 className="font-bold text-lg text-green-400 mb-2">Diagnosis Result</h3>
+        <h3 className="font-bold text-lg text-green-400 mb-2">{t('pest.diagnosis_result')}</h3>
         <p className="text-gray-300 whitespace-pre-wrap">{text}</p>
       </div>
     );
@@ -43,6 +44,7 @@ const FormattedDiagnosis = ({ text }) => {
 };
 
 const PestDiagnosisPage = () => {
+  const { t, i18n } = useTranslation();
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [cropInfo, setCropInfo] = useState('');
@@ -70,7 +72,7 @@ const PestDiagnosisPage = () => {
 
   const handleDiagnose = async () => {
     if (!image) {
-      setError('Please upload an image of the crop first.');
+      setError(t('pest.error.no_image'));
       return;
     }
 
@@ -89,11 +91,11 @@ const PestDiagnosisPage = () => {
         messages: [
             {
                 role: "system",
-                content: `You are a specialized AI assistant for farmers. Your task is to analyze an image of a crop and provide a detailed pest or disease diagnosis. Structure your response clearly for a farmer, using the following mandatory sections in markdown format:\n\n1.  **🌾 Crop Identification**\n2.  **🦠 Pest / Disease Diagnosis**\n3.  **🔍 Visual Symptoms**\n4.  **❓ Cause Analysis**\n5.  **✅ Treatment Plan** (with subsections for A) Organic/Natural and B) Chemical)\n6.  **🛡️ Prevention Tips**\n7.  **📌 Final Farmer Advice**\n\nUse a farmer-friendly tone, avoid excessive jargon, and make the advice simple and actionable.`
+                content: t('pest.system_prompt', { language: i18n.language })
             },
             {
                 role: "user",
-                content: `Please diagnose the crop in this image: ${image}. Additional info from user: ${cropInfo || 'Not provided'}`
+                content: t('pest.user_prompt', { image, cropInfo: cropInfo || t('not_provided') })
             }
         ],
         stream: true
@@ -109,7 +111,7 @@ const PestDiagnosisPage = () => {
       }
 
     } catch (err) {
-      setError('Failed to get diagnosis. Please check your API key and network connection.');
+      setError(t('pest.error.api_fail'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -127,8 +129,8 @@ const PestDiagnosisPage = () => {
   return (
     <div className="min-h-[calc(100vh-200px)] container mx-auto p-4 md:p-6 text-white">
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-green-400">Pest & Disease Diagnosis</h1>
-        <p className="text-gray-400 mt-2 max-w-2xl mx-auto">Upload an image of the affected crop to get an instant AI-powered diagnosis and treatment recommendation.</p>
+        <h1 className="text-4xl font-bold text-green-400">{t('pest.title')}</h1>
+        <p className="text-gray-400 mt-2 max-w-2xl mx-auto">{t('pest.subtitle')}</p>
       </header>
 
       <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-slate-700">
@@ -145,15 +147,15 @@ const PestDiagnosisPage = () => {
             ) : (
               <div className="text-center">
                 <UploadCloud className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-400">Drag & drop an image, or click to select</p>
-                <p className="text-xs text-gray-500">PNG, JPG, JPEG up to 10MB</p>
+                <p className="mt-2 text-sm text-gray-400">{t('pest.dropzone.text')}</p>
+                <p className="text-xs text-gray-500">{t('pest.dropzone.subtext')}</p>
               </div>
             )}
           </div>
 
           <div>
-            <label htmlFor="crop-info" className="block text-sm font-medium text-gray-300 mb-2">Optional: Crop Name / Location</label>
-            <input type="text" id="crop-info" value={cropInfo} onChange={(e) => setCropInfo(e.target.value)} className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder="e.g., Tomato plant in my backyard" />
+            <label htmlFor="crop-info" className="block text-sm font-medium text-gray-300 mb-2">{t('pest.crop_info.label')}</label>
+            <input type="text" id="crop-info" value={cropInfo} onChange={(e) => setCropInfo(e.target.value)} className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder={t('pest.crop_info.placeholder')} />
           </div>
 
           <div className="flex justify-center">
@@ -162,20 +164,20 @@ const PestDiagnosisPage = () => {
               disabled={!image || loading}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-green-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? <><Loader className="animate-spin -ml-1 mr-3 h-5 w-5" /> Analyzing...</> : <><Bug className="-ml-1 mr-2 h-5 w-5" /> Diagnose Crop</>}
+              {loading ? <><Loader className="animate-spin -ml-1 mr-3 h-5 w-5" /> {t('pest.button.analyzing')}</> : <><Bug className="-ml-1 mr-2 h-5 w-5" /> {t('pest.button.diagnose')}</>}
             </button>
           </div>
         </div>
 
         {(loading || error || diagnosis) && (
           <div className="mt-8 pt-6 border-t border-slate-700">
-            <h2 className="text-2xl font-bold text-center mb-4">Analysis Status</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">{t('pest.status.title')}</h2>
             <div className="bg-slate-900/70 p-4 rounded-lg text-left min-h-[100px]">
-              {loading && !diagnosis && <p className="text-yellow-400 flex items-center"><Loader className="animate-spin mr-2"/>Analyzing image, please wait...</p>}
-              {error && <p className="text-red-400 whitespace-pre-wrap"><b>Error:</b> {error}</p>}
+              {loading && !diagnosis && <p className="text-yellow-400 flex items-center"><Loader className="animate-spin mr-2"/>{t('pest.status.analyzing')}</p>}
+              {error && <p className="text-red-400 whitespace-pre-wrap"><b>{t('pest.status.error')}</b> {error}</p>}
               {diagnosis && (
                 <div>
-                  {!loading && <p className="text-green-400 font-bold mb-4">Success! Diagnosis complete.</p>}
+                  {!loading && <p className="text-green-400 font-bold mb-4">{t('pest.status.success')}</p>}
                   <FormattedDiagnosis text={diagnosis} />
                 </div>
               )}
