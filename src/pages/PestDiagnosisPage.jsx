@@ -6,23 +6,35 @@ import { Loader, UploadCloud, X, Bug } from 'lucide-react';
 
 // A component to format the diagnosis text
 const FormattedDiagnosis = ({ text }) => {
+  const { t } = useTranslation();
   if (!text) return null;
 
-  // Use a regex to split the text by the numbered headings, keeping the delimiters
-  const sections = text.split(/(\d+\.\s+\*\*[🌾🦠🔍❓✅🛡️📌].*?\*\*)/).filter(Boolean);
+  const sections = [];
+  try {
+    // Use a regex to split the text by the numbered headings, keeping the delimiters
+    const parts = text.split(/(\d+\.\s+\*\*[🌾🦠🔍❓✅🛡️📌].*?\*\*)/).filter(Boolean);
 
-  const formattedSections = [];
-  for (let i = 0; i < sections.length; i += 2) {
-    if (sections[i] && sections[i+1]) {
-      formattedSections.push({
-        title: sections[i].trim(),
-        content: sections[i+1].trim(),
-      });
+    // Check if the split resulted in pairs of title/content
+    if (parts.length > 0 && parts[0].match(/^\d+\./)) {
+        for (let i = 0; i < parts.length; i += 2) {
+            if (parts[i] && parts[i+1]) {
+                sections.push({
+                    title: parts[i].trim(),
+                    content: parts[i+1].trim(),
+                });
+            } else if (parts[i]) {
+                // Handle case where content might be missing for the last title
+                sections.push({ title: parts[i].trim(), content: '' });
+            }
+        }
     }
+  } catch (e) {
+    // If any parsing error occurs, we'll fall back to raw text rendering.
+    console.error("Failed to parse diagnosis text:", e);
   }
 
-  if (formattedSections.length === 0) {
-    // Fallback for unstructured responses
+  // If parsing fails or results in no sections, render the raw text safely.
+  if (sections.length === 0) {
     return (
       <div>
         <h3 className="font-bold text-lg text-green-400 mb-2">{t('pest.diagnosis_result')}</h3>
@@ -33,10 +45,13 @@ const FormattedDiagnosis = ({ text }) => {
 
   return (
     <div className="space-y-4 text-left">
-      {formattedSections.map(({ title, content }) => (
-        <div key={title}>
+      {sections.map(({ title, content }, index) => (
+        <div key={`${title}-${index}`}>
           <h3 className="font-bold text-lg text-green-400 mb-2">{title}</h3>
-          <div className="text-gray-300 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content.replace(/\*\*/g, '').replace(/\* /g, '• ').replace(/\n/g, '<br />') }} />
+          <div 
+            className="text-gray-300 whitespace-pre-wrap" 
+            dangerouslySetInnerHTML={{ __html: content.replace(/\*\*/g, '').replace(/\* /g, '• ').replace(/\n/g, '<br />') }} 
+          />
         </div>
       ))}
     </div>

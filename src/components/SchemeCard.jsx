@@ -15,7 +15,7 @@ const SchemeCard = ({ scheme, onSelect, isSelected }) => {
       onClick={onSelect}
       className={`p-4 rounded-lg cursor-pointer transition-all duration-200 ${isSelected ? 'bg-green-800/50 ring-2 ring-green-500' : 'bg-gray-800 hover:bg-gray-700'}`}
     >
-      <h3 className="font-bold text-lg text-green-400">{t(scheme.name[i18n.language] || scheme.name.en)}</h3>
+      <h3 className="font-bold text-lg text-green-400">{scheme.name[i18n.language] || scheme.name.en}</h3>
       <p className="text-sm text-gray-400 mt-1 mb-2">{scheme.shortDesc}</p>
       <div className="flex flex-wrap gap-2">
         {scheme.categories.map(cat => (

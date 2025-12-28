@@ -17,12 +17,12 @@ const SchemeDetail = ({ scheme }) => {
 
   const handleSave = () => {
     saveSchemeToLocal(scheme);
-    alert(t('schemes.detail.saved_alert', { schemeName: t(scheme.name[i18n.language] || scheme.name.en) }));
+    alert(t('schemes.detail.saved_alert', { schemeName: scheme.name[i18n.language] || scheme.name.en }));
   };
 
   const handleDownload = () => {
     // Mock download logic
-    const summary = `Scheme: ${t(scheme.name[i18n.language] || scheme.name.en)}\nBenefits: ${scheme.benefits}`;
+    const summary = `Scheme: ${scheme.name[i18n.language] || scheme.name.en}\nBenefits: ${scheme.benefits}`;
     const blob = new Blob([summary], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -48,7 +48,7 @@ const SchemeDetail = ({ scheme }) => {
     <div className="bg-gray-800 p-6 rounded-lg h-full">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-green-400">{t(scheme.name[i18n.language] || scheme.name.en)}</h2>
+          <h2 className="text-2xl font-bold text-green-400">{scheme.name[i18n.language] || scheme.name.en}</h2>
           <p className="text-sm text-gray-400">{t('schemes.detail.last_updated', { date: new Date(scheme.lastUpdated).toLocaleDateString() })}</p>
         </div>
         <span className="px-3 py-1 text-xs font-bold bg-green-600 text-white rounded-full">{t('schemes.detail.status_active')}</span>
