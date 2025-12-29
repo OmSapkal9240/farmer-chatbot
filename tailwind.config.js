@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -17,14 +17,16 @@ module.exports = {
         'soft-blue': '#60A5FA',
       },
       boxShadow: {
-        'glow-green-blue': '0 0 25px rgba(16,185,129,0.18), inset 0 0 18px rgba(34,211,238,0.08)',
-        'glow-green-blue-hover': '0 0 35px rgba(16,185,129,0.25), inset 0 0 22px rgba(34,211,238,0.12)',
+        'glow-green-blue':
+          '0 0 25px rgba(16,185,129,0.18), inset 0 0 18px rgba(34,211,238,0.08)',
+        'glow-green-blue-hover':
+          '0 0 35px rgba(16,185,129,0.25), inset 0 0 22px rgba(34,211,238,0.12)',
         'icon-glow': '0 4px 18px rgba(16,185,129,0.35)',
         'button-glow': '0 0 20px rgba(16,185,129,0.25)',
       },
       animation: {
         'float-subtle': 'floatY 6s ease-in-out infinite',
-        'breathing': 'breathing 3s ease-in-out infinite',
+        breathing: 'breathing 3s ease-in-out infinite',
       },
       keyframes: {
         breathing: {
