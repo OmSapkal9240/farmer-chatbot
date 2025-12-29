@@ -103,14 +103,12 @@ export default function ChatThread() {
     setError(null);
 
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          "model": "openai/gpt-4o-mini",
           "messages": [createSystemPrompt(), ...newMessages.map(({ role, content }) => ({ role, content }))]
         })
       });

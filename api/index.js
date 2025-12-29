@@ -1,6 +1,6 @@
 import { OpenRouter } from '@openrouter/sdk';
 
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
