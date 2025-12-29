@@ -6,8 +6,8 @@
  */
 
 // TODO: Replace with actual image assets or a robust image handling solution.
-const placeholderImage = (text) => `https://via.placeholder.com/800x400.png/22c55e/ffffff?text=${text}`;
-const placeholderIcon = (text) => `https://via.placeholder.com/40x40.png/166534/ffffff?text=${text.substring(0, 1)}`;
+const placeholderImage = (text) => `https://placehold.co/800x400.png/22c55e/ffffff?text=${text}`;
+const placeholderIcon = (text) => `https://placehold.co/40x40.png/166534/ffffff?text=${text.substring(0, 1)}`;
 
 export const crops = [
   {

@@ -29,7 +29,7 @@ export default function ChatThread() {
   const currentLang = languageMap[i18n.language] || 'en-IN';
 
   const { isListening, transcript, startListening, stopListening } = useVoiceRecognition(currentLang);
-  const { speak, isSpeaking, cancel, isAudioUnlocked, unlockAudio } = useElevenLabsTTS();
+  const { speak, isSpeaking, cancel, isAudioUnlocked, unlockAudio, ttsError } = useElevenLabsTTS();
 
 
   // Load chat history
@@ -62,6 +62,12 @@ export default function ChatThread() {
       handleSend(transcript);
     }
   }, [transcript]);
+
+  useEffect(() => {
+    if (ttsError) {
+      setError(ttsError);
+    }
+  }, [ttsError]);
 
   // Save chat history
   useEffect(() => {
@@ -200,7 +206,7 @@ const ErrorBanner = ({ error }) => (
   <div className="bg-red-800/90 text-white p-3 text-center text-sm flex items-center justify-center gap-3">
     <AlertTriangle size={18} />
     <span>{error.message}</span>
-        {error.type === 'INVALID_API_KEY' && <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
+        {error.type === 'INVALID_API_KEY' && <a href="https://elevenlabs.io/" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
   </div>
 );
 

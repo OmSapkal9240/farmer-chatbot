@@ -5,7 +5,7 @@
  */
 
 // Placeholder for crop icons. In a real app, these would be in /public/assets/icons/
-const placeholderIcon = (name) => `https://via.placeholder.com/40x40.png/16a34a/ffffff?text=${name.charAt(0)}`;
+const placeholderIcon = (name) => `https://placehold.co/40x40.png/16a34a/ffffff?text=${name.charAt(0)}`;
 
 export const SEASONAL_DATA = {
   crops: [

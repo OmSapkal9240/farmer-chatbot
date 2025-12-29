@@ -6,7 +6,7 @@
  */
 
 // Placeholder for example images. In a real app, these would be in /public/assets/pests/
-const placeholderPestImage = (text) => `https://via.placeholder.com/224x224.png/ff0000/ffffff?text=${text.replace(/ /g, '+')}`;
+const placeholderPestImage = (text) => `https://placehold.co/224x224.png/ff0000/ffffff?text=${text.replace(/ /g, '+')}`;
 
 export const PEST_DATA = [
   {
