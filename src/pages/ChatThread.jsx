@@ -103,12 +103,19 @@ export default function ChatThread() {
     setError(null);
 
     try {
-      const response = await fetch("/api/chat", {
+            const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      if (!apiKey || apiKey === '<PUT_OPENROUTER_API_KEY_HERE>') {
+        throw new Error('OpenRouter API key is missing. Please add VITE_OPENROUTER_API_KEY to your .env file.');
+      }
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          "model": "openai/gpt-4o-mini",
           "messages": [createSystemPrompt(), ...newMessages.map(({ role, content }) => ({ role, content }))]
         })
       });
