@@ -103,12 +103,26 @@ export default function ChatThread() {
     setError(null);
 
     try {
-            const response = await fetch("/api/chat", {
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      if (!apiKey || apiKey === '<PUT_OPENROUTER_API_KEY_HERE>') {
+        setError({ type: 'DEMO_MODE', message: 'API key not found. Running in demo mode.' });
+        const botMessage = {
+          role: 'assistant',
+          content: "I'm in demo mode. Please provide an OpenRouter API key to enable full functionality."
+        };
+        setMessages(prev => [...prev, botMessage]);
+        setIsProcessing(false);
+        return;
+      }
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          "model": "openai/gpt-4o-mini",
           "messages": [createSystemPrompt(), ...newMessages.map(({ role, content }) => ({ role, content }))]
         })
       });
@@ -119,17 +133,6 @@ export default function ChatThread() {
       }
 
       const data = await response.json();
-
-      if (data.demo_mode) {
-        setError({ type: 'DEMO_MODE', message: 'API key not found. Running in demo mode.' });
-        const botMessage = {
-          role: 'assistant',
-          content: "I'm in demo mode. Please provide an OpenRouter API key to enable full functionality."
-        };
-        setMessages(prev => [...prev, botMessage]);
-        return;
-      }
-
       const botMessage = data.choices[0].message;
       setMessages(prev => [...prev, botMessage]);
 
