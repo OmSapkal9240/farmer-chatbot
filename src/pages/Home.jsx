@@ -70,7 +70,7 @@ export default function Home() {
           <div className="mt-10 flex justify-center">
             <motion.button 
               onClick={startChat}
-              className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-lg hover:shadow-cyan-400/40 flex items-center space-x-3"
+              className="bg-cyan-600 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-md hover:bg-cyan-500 border border-cyan-500 hover:border-cyan-400 flex items-center space-x-3 transition-all duration-300"
               whileHover={{ scale: 1.1, transition: { type: 'spring', stiffness: 300 } }}
               whileTap={{ scale: 0.9 }}
                           >
