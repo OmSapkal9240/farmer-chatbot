@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { askLLM } from '../lib/chatApi';
+import useElevenLabsTTS from '../hooks/useElevenLabsTTS';
 
 // Simple canned responses for demo mode
 const demoReplies = {
@@ -17,13 +18,14 @@ const getDemoReply = (message) => {
   return demoReplies.default;
 };
 
-const ChatBox = () => {
+const ChatBox = ({ voice }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null); // { type: 'API_KEY_MISSING' | 'INVALID_API_KEY', message: '...' }
   const [useDemo, setUseDemo] = useState(false);
   const chatContainerRef = useRef(null);
+  const { speak } = useElevenLabsTTS();
 
   // Load chat history from localStorage on mount
   useEffect(() => {
@@ -77,6 +79,7 @@ const ChatBox = () => {
       }
       const botMessage = { role: 'assistant', content: response.choices[0].message.content };
       setMessages((prev) => [...prev, botMessage]);
+      speak(botMessage.content, voice);
     } catch (err) {
       const message = err.message.toLowerCase();
       if (message.includes('missing')) {
@@ -89,9 +92,7 @@ const ChatBox = () => {
     } finally {
       setIsProcessing(false);
     }
-    setMessages((prev) => [...prev, botMessage]);
-
-  }, [inputValue, isProcessing, useDemo]);
+  }, [inputValue, isProcessing, useDemo, messages, speak, voice]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
