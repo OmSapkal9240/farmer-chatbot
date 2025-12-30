@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+canvas {
+  display: block;
+  vertical-align: bottom;
+}
+
 body {
   @apply bg-gradient-to-b from-[#0a0f1f] to-[#10172d] text-slate-200;
   font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;

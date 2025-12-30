@@ -9,6 +9,7 @@ import VoiceVisualizer from '../components/VoiceVisualizer';
 import SpeakerIcon from '../components/SpeakerIcon';
 import { useTranslation } from 'react-i18next';
 import { stripMarkdown } from '../utils/formatters';
+import StreamingText from '../components/StreamingText';
 
 export default function ChatThread() {
   const { chatId } = useParams();
@@ -227,11 +228,13 @@ const MessageBubble = ({ msg, isSpeaking }) => (
     initial={{ opacity: 0, y: 10, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.3 }}
-    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+  >
     <div
       role="log"
-      className={`max-w-sm md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-md ${msg.role === 'user' ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none' : `bg-slate-700/80 text-slate-200 rounded-bl-none ${msg.isError ? 'border border-red-500' : ''}`}`}>
-      {msg.content}
+      className={`max-w-sm md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-md ${msg.role === 'user' ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none' : `bg-slate-700/80 text-slate-200 rounded-bl-none ${msg.isError ? 'border border-red-500' : ''}`}`}
+    >
+      {msg.role === 'assistant' ? <StreamingText text={msg.content} /> : msg.content}
       {isSpeaking && <SpeakerIcon />}
     </div>
   </motion.div>

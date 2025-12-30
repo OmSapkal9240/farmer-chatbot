@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import cache from '../services/cache';
 import { useTranslation } from 'react-i18next';
 import { getFilteredSchemes } from '../utils/schemesUtils';
 import { getSchemeRecommendation } from '../lib/openrouter';
@@ -25,15 +26,25 @@ const GovtSchemesPage = () => {
   const [aiSearchResult, setAiSearchResult] = useState(null);
   const [activeExplorer, setActiveExplorer] = useState('recommender'); // 'recommender' or 'search'
 
-  useEffect(() => {
-    // Simulate fetching and filtering data
+    useEffect(() => {
+    const cacheKey = `schemes-${JSON.stringify(filters)}-${sortBy}`;
+    const cachedSchemes = cache.get(cacheKey);
+
+    if (cachedSchemes) {
+      setSchemes(cachedSchemes);
+      if (selectedScheme && !cachedSchemes.find(s => s.id === selectedScheme.id)) {
+        setSelectedScheme(null);
+      }
+      return;
+    }
+
     let results = getFilteredSchemes(filters, sortBy);
-    // If no filters are active, show a limited number of schemes by default
     if (!filters.searchTerm && filters.category === 'all' && !filters.pin && filters.crop === 'all') {
       results = results.slice(0, 10);
     }
     setSchemes(results);
-    // If a selected scheme is no longer in the filtered list, deselect it
+    cache.set(cacheKey, results);
+
     if (selectedScheme && !results.find(s => s.id === selectedScheme.id)) {
       setSelectedScheme(null);
     }

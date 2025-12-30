@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import OrbitBackground from './components/OrbitBackground';
+import ParticlesBackground from './components/ParticlesBackground';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const Home = lazy(() => import('./pages/Home'));
 const ModulePage = lazy(() => import('./pages/ModulePage'));
@@ -22,10 +23,10 @@ function App() {
 
   return (
           <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
-        {!isChatPage && <OrbitBackground />}
+        <ParticlesBackground />
         {!isChatPage && <Navbar />}
-        <main className={`${isChatPage ? '' : 'relative z-10'}`}>
-          <Suspense fallback={<div className="flex justify-center items-center h-screen">{t('loading')}</div>}>
+        <main className="relative z-0">
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/chat/:chatId" element={<ChatThread />} />

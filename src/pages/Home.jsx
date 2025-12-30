@@ -5,6 +5,8 @@ import { Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
+import AnimatedHeadline from '../components/AnimatedHeadline';
+import AIGuide from '../components/AIGuide';
 
 const modules = [
   { icon: '🌾', titleKey: 'home.modules.crop_care.title', descKey: 'home.modules.crop_care.desc', path: '/crop-care' },
@@ -57,12 +59,11 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="absolute -inset-x-8 -top-4 h-32 bg-gradient-to-t from-transparent to-emerald-900/30 blur-3xl"></div>
-            <h2 
+            <AnimatedHeadline 
+              text={t('home.title')}
               style={{ fontFamily: "'Orbitron', sans-serif" }}
               className="text-4xl md:text-5xl font-bold mb-4 gradient-text animate-hue-shift"
-            >
-              {t('home.title')}
-            </h2>
+            />
             <p className="max-w-2xl mx-auto text-lg text-slate-300 mb-8">
               {t('home.subtitle')}
             </p>
@@ -79,6 +80,9 @@ export default function Home() {
             </motion.button>
           </div>
         </motion.div>
+
+        {/* AI Guide Section */}
+        <AIGuide />
       </section>
 
       {/* Modules Grid */}
