@@ -1,81 +1,36 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getPestDiagnosis } from '../services/diagnosisService';
 import { Loader, UploadCloud, X, Bug } from 'lucide-react';
 
 // A component to format the diagnosis text
-const FormattedDiagnosis = ({ text }) => {
-  const { t } = useTranslation();
-  if (!text) return null;
-
-  const sections = [];
-  try {
-    // Use a regex to split the text by the numbered headings, keeping the delimiters
-    const parts = text.split(/(\d+\.\s+\*\*[🌾🦠🔍❓✅🛡️📌].*?\*\*)/).filter(Boolean);
-
-    // Check if the split resulted in pairs of title/content
-    if (parts.length > 0 && parts[0].match(/^\d+\./)) {
-        for (let i = 0; i < parts.length; i += 2) {
-            if (parts[i] && parts[i+1]) {
-                sections.push({
-                    title: parts[i].trim(),
-                    content: parts[i+1].trim(),
-                });
-            } else if (parts[i]) {
-                // Handle case where content might be missing for the last title
-                sections.push({ title: parts[i].trim(), content: '' });
-            }
-        }
-    }
-  } catch (e) {
-    // If any parsing error occurs, we'll fall back to raw text rendering.
-    console.error("Failed to parse diagnosis text:", e);
-  }
-
-  // If parsing fails or results in no sections, render the raw text safely.
-  if (sections.length === 0) {
-    return (
-      <div>
-        <h3 className="font-bold text-lg text-green-400 mb-2">{t('pest.diagnosis_result')}</h3>
-        <p className="text-gray-300 whitespace-pre-wrap">{text}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4 text-left">
-      {sections.map(({ title, content }, index) => (
-        <div key={`${title}-${index}`}>
-          <h3 className="font-bold text-lg text-green-400 mb-2">{title}</h3>
-          <div 
-            className="text-gray-300 whitespace-pre-wrap" 
-            dangerouslySetInnerHTML={{ __html: content.replace(/\*\*/g, '').replace(/\* /g, '• ').replace(/\n/g, '<br />') }} 
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
+const DiagnosisSection = ({ title, content }) => (
+  <div>
+    <h3 className="font-bold text-lg text-green-400 mb-2">{title}</h3>
+    {Array.isArray(content) ? (
+      <ul className="list-disc list-inside space-y-1 text-gray-300">
+        {content.map((item, i) => <li key={i}>{item}</li>)}
+      </ul>
+    ) : (
+      <p className="text-gray-300 whitespace-pre-wrap">{content}</p>
+    )}
+  </div>
+);
 
 const PestDiagnosisPage = () => {
   const { t, i18n } = useTranslation();
-  const [image, setImage] = useState(null);
+    const [file, setFile] = useState(null); // Store the file object
   const [imagePreview, setImagePreview] = useState(null);
-  const [cropInfo, setCropInfo] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
+  const [diagnosis, setDiagnosis] = useState(null); // Will store the JSON object
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const onDrop = useCallback(acceptedFiles => {
-    const file = acceptedFiles[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result); // base64 string
-        setImagePreview(URL.createObjectURL(file));
-      };
-      reader.readAsDataURL(file);
+    const onDrop = useCallback(acceptedFiles => {
+    const droppedFile = acceptedFiles[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+      setImagePreview(URL.createObjectURL(droppedFile));
     }
   }, []);
 
@@ -85,62 +40,32 @@ const PestDiagnosisPage = () => {
     multiple: false
   });
 
-  const handleDiagnose = async () => {
-    if (!image) {
+    const handleDiagnose = async () => {
+    if (!file) {
       setError(t('pest.error.no_image'));
       return;
     }
 
     setLoading(true);
     setError(null);
-    setDiagnosis('');
+    setDiagnosis(null);
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        setError('Google AI API key is missing.');
-        setLoading(false);
-        return;
-      }
-
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
-
-      const systemPrompt = t('pest.system_prompt', { language: i18n.language });
-      const userPrompt = t('pest.user_prompt', { cropInfo: cropInfo || t('not_provided') });
-
-      const imageParts = [
-        {
-          inlineData: {
-            data: image.split(",")[1],
-            mimeType: image.match(/:(.*?);/)[1],
-          },
-        },
-      ];
-
-      const result = await model.generateContentStream([systemPrompt, userPrompt, ...imageParts]);
-
-      let fullContent = '';
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        fullContent += chunkText;
-        setDiagnosis(fullContent);
-      }
-
+      const diagnosisData = await getPestDiagnosis(file);
+      setDiagnosis(diagnosisData);
     } catch (err) {
-      setError(t('pest.error.api_fail'));
+      setError(err.message || t('pest.error.api_fail'));
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClear = () => {
-    setImage(null);
+    const handleClear = () => {
+    setFile(null);
     setImagePreview(null);
-    setCropInfo('');
-    setDiagnosis('');
-    setError('');
+    setDiagnosis(null);
+    setError(null);
   };
 
   return (
@@ -171,14 +96,12 @@ const PestDiagnosisPage = () => {
           </div>
 
           <div>
-            <label htmlFor="crop-info" className="block text-sm font-medium text-gray-300 mb-2">{t('pest.crop_info.label')}</label>
-            <input type="text" id="crop-info" value={cropInfo} onChange={(e) => setCropInfo(e.target.value)} className="w-full bg-slate-700/50 border border-slate-600 rounded-md p-2 text-white focus:ring-green-500 focus:border-green-500" placeholder={t('pest.crop_info.placeholder')} />
-          </div>
+                                  </div>
 
           <div className="flex justify-center">
             <button
               onClick={handleDiagnose}
-              disabled={!image || loading}
+              disabled={!file || loading}
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-green-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? <><Loader className="animate-spin -ml-1 mr-3 h-5 w-5" /> {t('pest.button.analyzing')}</> : <><Bug className="-ml-1 mr-2 h-5 w-5" /> {t('pest.button.diagnose')}</>}
@@ -192,10 +115,17 @@ const PestDiagnosisPage = () => {
             <div className="bg-slate-900/70 p-4 rounded-lg text-left min-h-[100px]">
               {loading && !diagnosis && <p className="text-yellow-400 flex items-center"><Loader className="animate-spin mr-2"/>{t('pest.status.analyzing')}</p>}
               {error && <p className="text-red-400 whitespace-pre-wrap"><b>{t('pest.status.error')}</b> {error}</p>}
-              {diagnosis && (
-                <div>
-                  {!loading && <p className="text-green-400 font-bold mb-4">{t('pest.status.success')}</p>}
-                  <FormattedDiagnosis text={diagnosis} />
+                            {diagnosis && (
+                <div className="space-y-4">
+                  <DiagnosisSection title="🌾 Crop Identified" content={diagnosis.crop} />
+                  <DiagnosisSection title="🐛 Problem Detected" content={diagnosis.problem} />
+                  <DiagnosisSection title="🔍 Visible Symptoms" content={diagnosis.symptoms} />
+                  <DiagnosisSection title="❓ Why This Happened" content={diagnosis.cause} />
+                  <DiagnosisSection title="⚠️ Severity Level" content={diagnosis.severity} />
+                  <DiagnosisSection title="✅ Treatment Steps" content={diagnosis.treatment} />
+                  <DiagnosisSection title="🧪 Recommended Solution Type" content={diagnosis.solutionType} />
+                  <DiagnosisSection title="🌿 Organic / Low-Cost Option" content={diagnosis.organicOption} />
+                  <DiagnosisSection title="🛡️ Prevention Tips" content={diagnosis.prevention} />
                 </div>
               )}
             </div>

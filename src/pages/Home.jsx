@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
 import AnimatedHeadline from '../components/AnimatedHeadline';
-import AIGuide from '../components/AIGuide';
+// import AIGuide from '../components/AIGuide';
 
 const modules = [
   { icon: '🌾', titleKey: 'home.modules.crop_care.title', descKey: 'home.modules.crop_care.desc', path: '/crop-care' },
@@ -82,7 +82,7 @@ export default function Home() {
         </motion.div>
 
         {/* AI Guide Section */}
-        <AIGuide />
+        {/* <AIGuide /> */}
       </section>
 
       {/* Modules Grid */}
