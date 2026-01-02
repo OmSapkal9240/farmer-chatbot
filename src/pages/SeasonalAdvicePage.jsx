@@ -7,7 +7,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCoordinatesForPin, getWeatherForecast, getSeasonalAdvice } from '../utils/api';
+import { getCoordinatesForPin, getWeatherForecast } from '../utils/weather';
+import { getSeasonalAdvice } from '../utils/gemini';
 import { MONTHS } from '../utils/seasonUtils';
 import { SEASONAL_DATA } from '../data/seasonal';
 import SeasonSidebar from '../components/SeasonSidebar';
