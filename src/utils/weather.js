@@ -1,3 +1,46 @@
+import { MONTHS } from './seasonUtils';
+
+export const getCoordinatesForPin = async (pin) => {
+  if (!/^[1-9][0-9]{5}$/.test(pin)) {
+    throw new Error('Invalid PIN code.');
+  }
+  const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch location data.');
+  }
+  const data = await response.json();
+  if (data[0].Status !== 'Success') {
+    throw new Error('PIN code not found.');
+  }
+  const { District, State } = data[0].PostOffice[0];
+  // Using a geocoding API to get lat/long from district and state
+  const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${District},%20${State}&count=1&language=en&format=json`);
+  const geoData = await geoResponse.json();
+  if (!geoData.results) {
+    throw new Error('Could not find coordinates for the location.');
+  }
+  const { latitude, longitude, name } = geoData.results[0];
+  return { latitude, longitude, name };
+};
+
+export const getWeatherForecast = async (latitude, longitude, month) => {
+  const monthIndex = MONTHS.indexOf(month);
+  if (monthIndex === -1) {
+    throw new Error('Invalid month provided.');
+  }
+
+  const year = new Date().getFullYear();
+  const startDate = new Date(year, monthIndex, 1).toISOString().split('T')[0];
+  const endDate = new Date(year, monthIndex + 1, 0).toISOString().split('T')[0];
+
+  const response = await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${latitude}&longitude=${longitude}&start_date=${startDate}&end_date=${endDate}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch weather forecast data.');
+  }
+  const data = await response.json();
+  return data.daily;
+};
+
 export const getWeather = async (cityName) => {
   if (!cityName) return null;
 
