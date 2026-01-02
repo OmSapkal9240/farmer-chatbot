@@ -14,7 +14,12 @@ const useVoiceRecognition = (language) => {
     const recognition = new window.webkitSpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = language;
+    const langMap = {
+      en: 'en-US',
+      hi: 'hi-IN',
+      mr: 'mr-IN',
+    };
+    recognition.lang = langMap[language] || 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);

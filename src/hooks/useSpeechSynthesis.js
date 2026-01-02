@@ -20,18 +20,23 @@ const useSpeechSynthesis = () => {
     };
   }, []);
 
-  const speak = (text, lang, gender) => {
+  const speak = (text, lang, onEnd, gender = 'female') => {
     if (synth.speaking) {
       synth.cancel();
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      if (onEnd) {
+        onEnd();
+      }
+    };
 
     const selectedVoice = voices.find(voice => 
       voice.lang === lang && 
-      (gender ? voice.name.toLowerCase().includes(gender) : true)
+      (voice.name.toLowerCase().includes(gender))
     );
 
     const fallbackVoice = voices.find(voice => voice.lang === lang);

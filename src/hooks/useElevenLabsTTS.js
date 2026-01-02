@@ -13,12 +13,13 @@ const useElevenLabsTTS = () => {
         setIsAudioUnlocked(true);
     }, [isAudioUnlocked]);
 
-    const speak = useCallback(async (text, voice) => {
+    const speak = useCallback(async (text, voice, onPlaybackEnd) => {
         if (!isAudioUnlocked || !text || isSpeaking) return;
 
         const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
         if (!apiKey) {
-            return; // Silently fail if no API key
+            console.error('ElevenLabs API Key is missing.');
+            return;
         }
 
         if (audioRef.current) {
@@ -62,9 +63,12 @@ const useElevenLabsTTS = () => {
                 setIsSpeaking(false);
                 URL.revokeObjectURL(audioUrl);
                 audioRef.current = null;
+                if (onPlaybackEnd) {
+                    onPlaybackEnd();
+                }
             };
         } catch (error) {
-            // Silently fail on error
+            console.error(error);
             setIsSpeaking(false);
         }
     }, [isSpeaking, isAudioUnlocked]);
@@ -77,7 +81,7 @@ const useElevenLabsTTS = () => {
         setIsSpeaking(false);
     }, []);
 
-    return { isSpeaking, speak, cancel, isAudioUnlocked, unlockAudio, ttsError: null };
+    return { isSpeaking, speak, cancel, isAudioUnlocked, unlockAudio };
 };
 
 export default useElevenLabsTTS;

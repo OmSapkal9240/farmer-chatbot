@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
-import { OpenRouter } from "@openrouter/sdk";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Loader, UploadCloud, X, Bug } from 'lucide-react';
 
 // A component to format the diagnosis text
@@ -96,33 +96,35 @@ const PestDiagnosisPage = () => {
     setDiagnosis('');
 
     try {
-      const openrouter = new OpenRouter({
-        apiKey: import.meta.env.VITE_OPENROUTER_API_KEY_PEST,
-        baseURL: 'https://openrouter.ai/api/v1'
-      });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        setError('Google AI API key is missing.');
+        setLoading(false);
+        return;
+      }
 
-      const stream = await openrouter.chat.send({
-        model: "openai/gpt-4o-mini",
-        messages: [
-            {
-                role: "system",
-                content: t('pest.system_prompt', { language: i18n.language })
-            },
-            {
-                role: "user",
-                content: t('pest.user_prompt', { image, cropInfo: cropInfo || t('not_provided') })
-            }
-        ],
-        stream: true
-      });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
+
+      const systemPrompt = t('pest.system_prompt', { language: i18n.language });
+      const userPrompt = t('pest.user_prompt', { cropInfo: cropInfo || t('not_provided') });
+
+      const imageParts = [
+        {
+          inlineData: {
+            data: image.split(",")[1],
+            mimeType: image.match(/:(.*?);/)[1],
+          },
+        },
+      ];
+
+      const result = await model.generateContentStream([systemPrompt, userPrompt, ...imageParts]);
 
       let fullContent = '';
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          fullContent += content;
-          setDiagnosis(fullContent);
-        }
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        fullContent += chunkText;
+        setDiagnosis(fullContent);
       }
 
     } catch (err) {
