@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Download, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
 import CropCalendar from './CropCalendar';
 import CropGallery from './CropGallery';
+import Chatbot from './Chatbot';
 
 const CropDetailCard = ({ crop }) => {
   const { t } = useTranslation();
@@ -55,33 +56,33 @@ const CropDetailCard = ({ crop }) => {
     }
   };
 
-  const tabs = ['overview', 'symptoms', 'management', 'fertilizer', 'calendar'];
+  const tabs = ['overview', 'symptoms', 'management', 'fertilizer', 'calendar', 'chat'];
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 'overview':
         return (
           <div className="space-y-4">
-            <p className="text-gray-700">{t(crop.overview.description)}</p>
+            <p className="text-[#9fb3c8] text-base leading-relaxed">{t(crop.overview.description)}</p>
             <div>
-              <h4 className="font-semibold">Ideal Sowing Window:</h4>
+              <h4 className="font-semibold text-[#e8f1ff]">Ideal Sowing Window:</h4>
               <div className="flex flex-wrap gap-2 mt-2">
                 {crop.overview.sowingWindow.map(month => (
-                  <span key={month} className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">{month}</span>
+                  <span key={month} className="bg-teal-400/10 text-teal-300 text-sm font-medium px-3 py-1 rounded-full border border-teal-400/20">{month}</span>
                 ))}
               </div>
             </div>
-            <p><strong>Spacing:</strong> {crop.overview.spacing}</p>
-            <p><strong>Seed Rate:</strong> {crop.overview.seedRate}</p>
+            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Spacing:</strong> {crop.overview.spacing}</p>
+            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Seed Rate:</strong> {crop.overview.seedRate}</p>
           </div>
         );
       case 'symptoms':
         return (
           <div className="space-y-3">
             {crop.symptoms.map(symptom => (
-              <div key={symptom.id} className="border rounded-md">
+              <div key={symptom.id} className="border border-white/10 rounded-md bg-white/5">
                 <button onClick={() => handleAccordionToggle(symptom.id)} className="w-full p-4 text-left flex justify-between items-center">
-                  <span className="font-semibold">{t(symptom.name)}</span>
+                  <span className="font-semibold text-[#e8f1ff]">{t(symptom.name)}</span>
                   <ChevronDown className={`transform transition-transform ${openAccordion === symptom.id ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
@@ -92,17 +93,17 @@ const CropDetailCard = ({ crop }) => {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="p-4 border-t bg-gray-50">
-                        <p><strong>Cause:</strong> {symptom.cause}</p>
+                      <div className="p-4 border-t border-white/10 bg-black/20">
+                        <p className="text-[#9fb3c8]"><strong>Cause:</strong> {symptom.cause}</p>
                         <div className="mt-2">
-                          <strong className="text-green-600">Do:</strong>
-                          <ul className="list-disc list-inside ml-2">{symptom.action.do.map(d => <li key={d}>{d}</li>)}</ul>
+                          <strong className="text-green-400">Do:</strong>
+                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.do.map(d => <li key={d}>{d}</li>)}</ul>
                         </div>
                         <div className="mt-2">
-                          <strong className="text-red-600">Don't:</strong>
-                          <ul className="list-disc list-inside ml-2">{symptom.action.dont.map(d => <li key={d}>{d}</li>)}</ul>
+                          <strong className="text-red-400">Don't:</strong>
+                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.dont.map(d => <li key={d}>{d}</li>)}</ul>
                         </div>
-                        <button onClick={() => handleOpenGallery(symptom.images)} className="mt-3 text-sm text-blue-600 hover:underline flex items-center space-x-1">
+                        <button onClick={() => handleOpenGallery(symptom.images)} className="mt-3 text-sm text-teal-400 hover:underline flex items-center space-x-1">
                           <ImageIcon size={16} />
                           <span>See Example Images</span>
                         </button>
@@ -118,13 +119,13 @@ const CropDetailCard = ({ crop }) => {
         return (
           <div className="space-y-4">
             {crop.management.map(stage => (
-              <div key={stage.stage} className="p-4 border rounded-lg bg-white">
-                <h4 className="font-bold text-lg mb-2">{stage.stage}</h4>
-                <p className="font-semibold">Organic Options:</p>
-                <ul className="list-disc list-inside ml-2 mb-2">{stage.organic.map(o => <li key={o}>{o}</li>)}</ul>
-                <p className="font-semibold">Chemical Options:</p>
-                <ul className="list-disc list-inside ml-2">{stage.chemical.map(c => <li key={c}>{c}</li>)}</ul>
-                <p className="mt-3 text-sm text-red-700 bg-red-100 p-2 rounded-md"><strong>Safety Note:</strong> {stage.safetyNote}</p>
+              <div key={stage.stage} className="p-4 border border-white/10 rounded-lg bg-white/5">
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff]">{stage.stage}</h4>
+                <p className="font-semibold text-[#e8f1ff]">Organic Options:</p>
+                <ul className="list-disc list-inside ml-2 mb-2 text-[#9fb3c8]">{stage.organic.map(o => <li key={o}>{o}</li>)}</ul>
+                <p className="font-semibold text-[#e8f1ff]">Chemical Options:</p>
+                <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{stage.chemical.map(c => <li key={c}>{c}</li>)}</ul>
+                <p className="mt-3 text-sm text-yellow-200 bg-yellow-400/10 p-2 rounded-md border border-yellow-400/20"><strong>Safety Note:</strong> {stage.safetyNote}</p>
               </div>
             ))}
           </div>
@@ -132,20 +133,20 @@ const CropDetailCard = ({ crop }) => {
       case 'fertilizer':
         return (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border rounded-lg">
-              <thead className="bg-gray-100">
+            <table className="min-w-full bg-white/5 border border-white/10 rounded-lg">
+              <thead className="bg-white/10">
                 <tr>
-                  <th className="p-3 text-left font-semibold">Timing</th>
-                  <th className="p-3 text-left font-semibold">N-P-K Ratio</th>
-                  <th className="p-3 text-left font-semibold">Details</th>
+                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Timing</th>
+                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">N-P-K Ratio</th>
+                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Details</th>
                 </tr>
               </thead>
               <tbody>
                 {crop.fertilizerSchedule.map(item => (
-                  <tr key={item.timing} className="border-b">
-                    <td className="p-3">{item.timing}</td>
-                    <td className="p-3 font-mono">{item.npk}</td>
-                    <td className="p-3">{item.details}</td>
+                  <tr key={item.timing} className="border-b border-white/10">
+                    <td className="p-3 text-[#9fb3c8]">{item.timing}</td>
+                    <td className="p-3 font-mono text-[#9fb3c8]">{item.npk}</td>
+                    <td className="p-3 text-[#9fb3c8]">{item.details}</td>
                   </tr>
                 ))}
               </tbody>
@@ -154,19 +155,21 @@ const CropDetailCard = ({ crop }) => {
         );
       case 'calendar':
         return <CropCalendar calendarData={crop.calendar} />;
+      case 'chat':
+        return <Chatbot crop={crop} />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="bg-gradient-to-br from-[#0f1b2e] to-[#132b45] border border-teal-300/20 rounded-lg shadow-lg overflow-hidden">
       <div className="relative">
         <img src={crop.heroImage} alt={`${t(crop.name)} hero banner`} className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
         <div className="absolute bottom-0 left-0 p-4">
-          <h2 className="text-3xl font-bold text-white">{t(crop.name)}</h2>
-          <p className="text-gray-200 italic">{crop.scientificName}</p>
+          <h2 className="text-3xl font-bold text-[#e8f1ff]">{t(crop.name)}</h2>
+          <p className="text-[#9fb3c8] italic">{crop.scientificName}</p>
         </div>
         <span className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center space-x-1">
           <Star size={14} />
@@ -174,18 +177,18 @@ const CropDetailCard = ({ crop }) => {
         </span>
       </div>
 
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-white/10">
             <nav className="-mb-px flex space-x-4" aria-label="Tabs">
               {tabs.map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                  className={`whitespace-nowrap py-3 px-2 border-b-2 font-semibold text-base capitalize transition-all duration-200 ${
                     activeTab === tab
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-[#34e89e] text-[#34e89e]'
+                      : 'border-transparent text-[#9fb3c8] hover:text-[#e8f1ff] hover:border-white/30'
                   }`}
                 >
                   {tab}
@@ -194,8 +197,8 @@ const CropDetailCard = ({ crop }) => {
             </nav>
           </div>
           <div className="flex space-x-2">
-            <button onClick={handleSaveToFarm} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full" aria-label="Save to My Farm"><Save size={20} /></button>
-            <button onClick={handleDownloadPdf} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full" aria-label="Download as PDF"><Download size={20} /></button>
+            <button onClick={handleSaveToFarm} className="p-2 text-[#9fb3c8] hover:bg-white/10 rounded-full transition-colors" aria-label="Save to My Farm"><Save size={20} /></button>
+            <button onClick={handleDownloadPdf} className="p-2 text-[#9fb3c8] hover:bg-white/10 rounded-full transition-colors" aria-label="Download as PDF"><Download size={20} /></button>
           </div>
         </div>
 
