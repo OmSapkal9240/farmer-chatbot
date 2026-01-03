@@ -11,6 +11,18 @@ This project is a frontend-only demonstration of a Farmer Advisory application, 
 - **i18n Support**: Mock internationalization for English, Hindi, and Marathi.
 - **Responsive Design**: Adapts to both desktop and mobile viewports.
 
+### Environment Variables
+
+This project uses the OpenCage and OpenWeatherMap APIs to provide location-aware features. You will need to create a `.env` file in the root of the project and add your API keys.
+
+1.  Rename the `.env.example` file to `.env`.
+2.  Add your personal API keys to the `.env` file.
+
+```
+VITE_OPENCAGE_API_KEY="YOUR_OPENCAGE_API_KEY"
+VITE_OPENWEATHER_API_KEY="YOUR_OPENWEATHER_API_KEY"
+```
+
 ## Getting Started
 
 ### Prerequisites

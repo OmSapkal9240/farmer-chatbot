@@ -17,9 +17,11 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-const GEMINI_API_KEY = "AIzaSyCz74senWA4eL71Loof2zM_4GFSMWUsA";
+import 'dotenv/config';
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const OPENROUTER_API_KEY = "<PUT_OPENROUTER_API_KEY_HERE>";
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const openrouter = new OpenRouter({
   apiKey: OPENROUTER_API_KEY,
 });
