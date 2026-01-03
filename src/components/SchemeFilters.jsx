@@ -5,10 +5,12 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import { getSchemeCategories } from '../utils/schemesUtils';
 
 const SchemeFilters = ({ filters, setFilters, sortBy, setSortBy }) => {
+  const { t } = useTranslation();
   const categories = getSchemeCategories();
 
   const handleFilterChange = (e) => {
@@ -25,14 +27,14 @@ const SchemeFilters = ({ filters, setFilters, sortBy, setSortBy }) => {
           name="searchTerm"
           value={filters.searchTerm}
           onChange={handleFilterChange}
-          placeholder="Search schemes..."
+          placeholder={t('schemes.filters.search_placeholder')}
           className="w-full p-3 pl-10 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500"
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="category-filter" className="block text-sm font-bold text-gray-300 mb-1">Category</label>
+          <label htmlFor="category-filter" className="block text-sm font-bold text-gray-300 mb-1">{t('schemes.filters.category_label')}</label>
           <select
             id="category-filter"
             name="category"
@@ -46,16 +48,16 @@ const SchemeFilters = ({ filters, setFilters, sortBy, setSortBy }) => {
           </select>
         </div>
         <div>
-          <label htmlFor="sort-by" className="block text-sm font-bold text-gray-300 mb-1">Sort By</label>
+          <label htmlFor="sort-by" className="block text-sm font-bold text-gray-300 mb-1">{t('schemes.filters.sort_by_label')}</label>
           <select
             id="sort-by"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white"
           >
-            <option value="relevance">Relevance</option>
-            <option value="newest">Newest</option>
-            <option value="alphabetical">Alphabetical</option>
+            <option value="relevance">{t('schemes.filters.sort_relevance')}</option>
+            <option value="newest">{t('schemes.filters.sort_newest')}</option>
+            <option value="alphabetical">{t('schemes.filters.sort_alphabetical')}</option>
           </select>
         </div>
       </div>

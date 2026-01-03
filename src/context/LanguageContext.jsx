@@ -1,30 +1,23 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { createContext, useState, useContext } from 'react';
 
-const LanguageContext = createContext();
-
-export const useLanguage = () => useContext(LanguageContext);
+export const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const { i18n } = useTranslation();
-  const [language, setLanguage] = useState(i18n.language);
+  const [language, setLanguage] = useState('en');
 
-  useEffect(() => {
-    const handleLanguageChange = (lng) => setLanguage(lng);
-    i18n.on('languageChanged', handleLanguageChange);
-    return () => {
-      i18n.off('languageChanged', handleLanguageChange);
-    };
-  }, [i18n]);
-
-  const value = {
-    language,
-    setLanguage,
-  };
+  const value = { language, setLanguage };
 
   return (
     <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
 };

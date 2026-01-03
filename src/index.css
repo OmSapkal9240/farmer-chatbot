@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+canvas {
+  display: block;
+  vertical-align: bottom;
+}
+
 body {
   @apply bg-gradient-to-b from-[#0a0f1f] to-[#10172d] text-slate-200;
   font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
@@ -39,6 +44,11 @@ body {
   filter: blur(38px);
   opacity: 0.22;
   pointer-events: none;
+}
+
+.weather-container {
+  background: linear-gradient(180deg, #1a2a45, #12182d);
+  min-height: 100vh;
 }
 
 ::-webkit-scrollbar { height: 8px; width: 10px; }

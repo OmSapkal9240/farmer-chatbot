@@ -5,14 +5,16 @@ import { Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ModuleCard from '../components/ModuleCard';
 import SectionBackground from '../components/SectionBackground';
+import AnimatedHeadline from '../components/AnimatedHeadline';
+// import AIGuide from '../components/AIGuide';
 
 const modules = [
-  { icon: '🌾', title: 'Crop Care', desc: 'Get tailored crop advice.', path: '/crop-care' },
-  { icon: '⛅', title: 'Weather Insights', desc: 'Check local forecasts.', path: '/weather' },
-  { icon: '🐛', title: 'Pest Diagnosis', desc: 'Identify and treat pests.', path: '/pest-diagnosis' },
-  { icon: '📅', title: 'Seasonal Advice', desc: 'Plan for the season.', path: '/seasonal-advice' },
-  { icon: '🏛️', title: 'Govt Schemes', desc: 'Find relevant schemes.', path: '/govt-schemes' },
-  { icon: '📲', title: 'WhatsApp/SMS', desc: 'Connect via messaging.', path: '/whatsapp-sms' },
+  { icon: '🌾', titleKey: 'home.modules.crop_care.title', descKey: 'home.modules.crop_care.desc', path: '/crop-care' },
+  { icon: '⛅', titleKey: 'home.modules.weather_insights.title', descKey: 'home.modules.weather_insights.desc', path: '/weather' },
+  { icon: '🐛', titleKey: 'home.modules.pest_diagnosis.title', descKey: 'home.modules.pest_diagnosis.desc', path: '/pest-diagnosis' },
+  { icon: '📅', titleKey: 'home.modules.seasonal_advice.title', descKey: 'home.modules.seasonal_advice.desc', path: '/seasonal-advice' },
+  { icon: '🏛️', titleKey: 'home.modules.govt_schemes.title', descKey: 'home.modules.govt_schemes.desc', path: '/govt-schemes' },
+  { icon: '📲', titleKey: 'home.modules.whatsapp_sms.title', descKey: 'home.modules.whatsapp_sms.desc', path: '/whatsapp-sms' },
 ];
 
 const FloatingFarmIcon = () => (
@@ -34,7 +36,7 @@ export default function Home() {
   const startChat = () => {
     const id = Date.now().toString();
     const chats = JSON.parse(localStorage.getItem("chat_sessions") || "[]");
-    chats.unshift({ id, title: "New Chat", messages: [{role:"assistant", content:"Namaskar! How can I help?"}] });
+    chats.unshift({ id, title: t('chat.new_chat'), messages: [{role:"assistant", content:t('chat.welcome_message')}] });
     localStorage.setItem("chat_sessions", JSON.stringify(chats));
     navigate(`/chat/${id}`);
   };
@@ -57,12 +59,11 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="absolute -inset-x-8 -top-4 h-32 bg-gradient-to-t from-transparent to-emerald-900/30 blur-3xl"></div>
-            <h2 
+            <AnimatedHeadline 
+              text={t('home.title')}
               style={{ fontFamily: "'Orbitron', sans-serif" }}
               className="text-4xl md:text-5xl font-bold mb-4 gradient-text animate-hue-shift"
-            >
-              {t('home.title')}
-            </h2>
+            />
             <p className="max-w-2xl mx-auto text-lg text-slate-300 mb-8">
               {t('home.subtitle')}
             </p>
@@ -70,7 +71,7 @@ export default function Home() {
           <div className="mt-10 flex justify-center">
             <motion.button 
               onClick={startChat}
-              className="bg-gradient-to-r from-blue-500 to-emerald-400 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-lg hover:shadow-cyan-400/40 flex items-center space-x-3"
+              className="bg-cyan-600 text-white font-semibold rounded-full px-8 py-4 text-lg shadow-md hover:bg-cyan-500 border border-cyan-500 hover:border-cyan-400 flex items-center space-x-3 transition-all duration-300"
               whileHover={{ scale: 1.1, transition: { type: 'spring', stiffness: 300 } }}
               whileTap={{ scale: 0.9 }}
                           >
@@ -79,6 +80,9 @@ export default function Home() {
             </motion.button>
           </div>
         </motion.div>
+
+        {/* AI Guide Section */}
+        {/* <AIGuide /> */}
       </section>
 
       {/* Modules Grid */}
@@ -87,7 +91,7 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {modules.map((mod, i) => (
             <Link to={mod.path} key={i}>
-              <ModuleCard {...mod} delay={i} />
+              <ModuleCard icon={mod.icon} title={t(mod.titleKey)} desc={t(mod.descKey)} delay={i} />
             </Link>
           ))}
         </div>

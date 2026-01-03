@@ -7,12 +7,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import getWeather from 'msn-weather';
-import { CheckCircle, Info, Bell } from 'lucide-react';
-import { SEASONAL_DATA } from '../data/seasonal';
-import WeatherCard from './WeatherCard';
+import { CheckCircle, Info, Bell, Wind, Droplets, Thermometer } from 'lucide-react';
 
-const TaskItem = ({ task, cropId, month }) => {
+const TaskItem = ({ task, tip, cropId, month }) => {
   const taskId = `${cropId}-${month}-${task.task}`;
   const [isDone, setIsDone] = useState(() => localStorage.getItem(taskId) === 'true');
 
@@ -24,7 +21,10 @@ const TaskItem = ({ task, cropId, month }) => {
 
   return (
     <div className={`flex items-center justify-between p-3 rounded-md transition-colors ${isDone ? 'bg-green-900/50 text-gray-500' : 'bg-gray-700/50'}`}>
-      <span className={`${isDone ? 'line-through' : ''}`}>{task.task}</span>
+      <div>
+        <span className={`${isDone ? 'line-through' : ''}`}>{task}</span>
+        <p className={`text-xs text-gray-400 mt-1 ${isDone ? 'line-through' : ''}`}>{tip}</p>
+      </div>
       <div className="flex items-center space-x-2">
         <button className="p-1 text-gray-400 hover:text-white" title="Set Reminder (mock)"><Bell size={16} /></button>
         <button onClick={handleToggleDone} className="flex items-center space-x-1 text-sm text-gray-300 hover:text-white">
@@ -36,33 +36,7 @@ const TaskItem = ({ task, cropId, month }) => {
   );
 };
 
-const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
-  const { t, i18n } = useTranslation();
-  const tips = SEASONAL_DATA.tips[crop.id] || {};
-  const [weatherData, setWeatherData] = useState(null);
-  const [weatherLoading, setWeatherLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchWeather = async () => {
-      setWeatherLoading(true);
-      try {
-        const data = await getWeather({
-          city: 'Pune', // Hardcoded for now, can be dynamic
-          lang: i18n.language,
-          degreeType: 'C'
-        });
-        setWeatherData(data);
-      } catch (error) {
-        console.error("Failed to fetch weather data:", error);
-        setWeatherData(null); // Clear previous data on error
-      } finally {
-        setWeatherLoading(false);
-      }
-    };
-
-    fetchWeather();
-  }, [i18n.language]);
-
+const SeasonalTips = ({ crop, month, advice, isLoading }) => {
   if (isLoading) {
     return (
       <div className="bg-gray-800 p-6 rounded-lg">
@@ -70,7 +44,17 @@ const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
           <div className="h-8 bg-gray-700 rounded w-1/3"></div>
           <div className="h-4 bg-gray-700 rounded w-full"></div>
           <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+          <div className="h-10 bg-gray-700 rounded mt-4"></div>
+          <div className="h-10 bg-gray-700 rounded"></div>
         </div>
+      </div>
+    );
+  }
+
+  if (!advice) {
+    return (
+      <div className="bg-gray-800 p-6 rounded-lg text-center">
+        <p>Select a crop, month, and PIN to get advice.</p>
       </div>
     );
   }
@@ -78,34 +62,50 @@ const SeasonalTips = ({ crop, month, tasks, isLoading }) => {
   return (
     <div className="bg-gray-800 p-6 rounded-lg">
       <div className="mb-6">
-        <h3 className="font-semibold text-gray-300 mb-3 text-lg">Weather Insights</h3>
-        <WeatherCard weatherData={weatherData} isLoading={weatherLoading} />
+        <h3 className="font-semibold text-gray-300 mb-3 text-lg">Weather Insights for {month}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="bg-gray-700/50 p-4 rounded-lg flex flex-col items-center justify-center">
+            <Thermometer className="text-red-400 mb-2" size={24} />
+            <span className="font-bold text-lg">{advice.weatherInsights.temperatureRange}</span>
+            <span className="text-sm text-gray-400">Temperature</span>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg flex flex-col items-center justify-center">
+            <Droplets className="text-blue-400 mb-2" size={24} />
+            <span className="font-bold text-lg">{advice.weatherInsights.rainfallLikelihood}</span>
+            <span className="text-sm text-gray-400">Rainfall</span>
+          </div>
+          <div className="bg-gray-700/50 p-4 rounded-lg flex flex-col items-center justify-center">
+            <Wind className="text-teal-400 mb-2" size={24} />
+            <span className="font-bold text-lg">{advice.weatherInsights.humidityNote}</span>
+            <span className="text-sm text-gray-400">Humidity</span>
+          </div>
+        </div>
       </div>
 
       <h2 className="text-xl font-bold mb-4">Tasks & Tips for {month}</h2>
-      
       <div className="space-y-3 mb-6">
-        <h3 className="font-semibold text-gray-300">Tasks:</h3>
-        {tasks.map((task, index) => (
-          <TaskItem key={index} task={task} cropId={crop.id} month={month} />
+        {advice.tasksAndTips.map((item, index) => (
+          <TaskItem key={index} task={item.task} tip={item.tip} cropId={crop.id} month={month} />
         ))}
       </div>
 
       <div className="space-y-4">
         <h3 className="font-semibold text-gray-300">Contextual Tips:</h3>
-        {Object.entries(tips).map(([key, tip]) => (
+        {Object.entries(advice.contextualTips).map(([key, value]) => (
           <div key={key} className="p-4 bg-gray-700/50 rounded-md">
-            <h4 className="font-bold capitalize text-green-400">{key}</h4>
-            <p className="text-gray-300 mt-1">{t(tip[i18n.language] || tip.en)}</p>
-            <div className="group relative inline-block mt-2">
-              <Info size={16} className="text-blue-400 cursor-pointer" />
-              <div className="absolute bottom-full mb-2 w-64 bg-gray-900 text-white text-xs rounded py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                {tip.why}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-gray-900"></div>
-              </div>
-            </div>
+            <h4 className="font-bold capitalize text-green-400">{key.replace(/([A-Z])/g, ' $1')}</h4>
+            <p className="text-gray-300 mt-1">{value}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6">
+        <h3 className="font-semibold text-gray-300">Quick Recommendations:</h3>
+        <ul className="list-disc list-inside mt-2 text-gray-300 space-y-1">
+          {advice.quickRecommendations.map((rec, index) => (
+            <li key={index}>{rec}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );

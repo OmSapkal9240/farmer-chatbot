@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Send, AlertTriangle } from 'lucide-react';
+import { Send, AlertTriangle, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createSystemPrompt } from '../lib/context';
+import useVoiceRecognition from '../hooks/useVoiceRecognition';
+import useElevenLabsTTS from '../hooks/useElevenLabsTTS';
+import VoiceVisualizer from '../components/VoiceVisualizer';
+import SpeakerIcon from '../components/SpeakerIcon';
+import { useTranslation } from 'react-i18next';
+import { stripMarkdown } from '../utils/formatters';
+import StreamingText from '../components/StreamingText';
 
 export default function ChatThread() {
   const { chatId } = useParams();
@@ -12,6 +19,19 @@ export default function ChatThread() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
     const chatContainerRef = useRef(null);
+  const { i18n } = useTranslation();
+  const [voiceGender, setVoiceGender] = useState('female');
+
+  const languageMap = {
+    en: 'en-IN',
+    hi: 'hi-IN',
+    mr: 'mr-IN',
+  };
+  const currentLang = languageMap[i18n.language] || 'en-IN';
+
+  const { isListening, transcript, startListening, stopListening } = useVoiceRecognition(currentLang);
+  const { speak, isSpeaking, cancel, isAudioUnlocked, unlockAudio, ttsError } = useElevenLabsTTS();
+
 
   // Load chat history
   useEffect(() => {
@@ -27,6 +47,28 @@ export default function ChatThread() {
       setMessages([{ role: 'assistant', content: 'Namaskar! How can I assist you?' }]);
     }
   }, [chatId]);
+
+  // Speak the bot's message
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === 'assistant' && !isSpeaking && isAudioUnlocked) {
+      const cleanedText = stripMarkdown(lastMessage.content);
+      speak(cleanedText, voiceGender);
+    }
+  }, [messages]);
+
+  // Auto-send transcript
+  useEffect(() => {
+    if (transcript) {
+      handleSend(transcript);
+    }
+  }, [transcript]);
+
+  useEffect(() => {
+    if (ttsError) {
+      setError(ttsError);
+    }
+  }, [ttsError]);
 
   // Save chat history
   useEffect(() => {
@@ -48,21 +90,36 @@ export default function ChatThread() {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isProcessing]);
 
-  const handleSend = useCallback(async () => {
-    if (inputValue.trim() === '' || isProcessing) return;
+  const handleSend = useCallback(async (text) => {
+    const messageToSend = typeof text === 'string' ? text : inputValue;
+    if (messageToSend.trim() === '' || isProcessing) return;
 
-    const userMessage = { role: 'user', content: inputValue };
+    setInputValue('');
+    cancel();
+
+    const userMessage = { role: 'user', content: messageToSend };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setInputValue('');
     setIsProcessing(true);
     setError(null);
 
     try {
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      if (!apiKey || apiKey === '<PUT_OPENROUTER_API_KEY_HERE>') {
+        setError({ type: 'DEMO_MODE', message: 'API key not found. Running in demo mode.' });
+        const botMessage = {
+          role: 'assistant',
+          content: "I'm in demo mode. Please provide an OpenRouter API key to enable full functionality."
+        };
+        setMessages(prev => [...prev, botMessage]);
+        setIsProcessing(false);
+        return;
+      }
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -78,14 +135,14 @@ export default function ChatThread() {
 
       const data = await response.json();
       const botMessage = data.choices[0].message;
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
 
     } catch (err) {
       setError({ type: 'API_ERROR', message: err.message || 'Failed to get response from AI.' });
     } finally {
       setIsProcessing(false);
     }
-  }, [inputValue, isProcessing, messages, chatId]);
+  }, [inputValue, isProcessing, messages, chatId, cancel]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -100,14 +157,35 @@ export default function ChatThread() {
         <div className="relative flex items-center justify-center mb-4 p-2">
           <button className="absolute left-0 text-sm text-slate-300 hover:text-white transition" onClick={() => navigate('/')}>← Home</button>
           <h1 className="font-orbitron font-bold text-xl text-center">Agri-Assistant</h1>
+          <div className="absolute right-0 flex items-center space-x-2">
+            <button onClick={() => setVoiceGender('male')} className={`px-2 py-1 text-xs rounded ${voiceGender === 'male' ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-slate-300'}`}>Male</button>
+            <button onClick={() => setVoiceGender('female')} className={`px-2 py-1 text-xs rounded ${voiceGender === 'female' ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-slate-300'}`}>Female</button>
+          </div>
                   </div>
 
-        <div className="flex-1 flex flex-col bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-slate-800">
+        <div className="relative flex-1 flex flex-col bg-slate-900/70 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden border border-slate-800">
+          {!isAudioUnlocked && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20">
+              <button 
+                onClick={unlockAudio} 
+                className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg shadow-lg hover:bg-emerald-700 transition-all transform hover:scale-105"
+              >
+                Enable Voice
+              </button>
+            </div>
+          )}
+
           {error && <ErrorBanner error={error} />}
           
           <div ref={chatContainerRef} className="flex-1 p-4 space-y-4 overflow-y-auto scroll-smooth">
             <AnimatePresence>
-              {messages.map((msg, index) => <MessageBubble key={index} msg={msg} />)}
+              {messages.map((msg, index) => (
+              <MessageBubble 
+                key={index} 
+                msg={msg} 
+                isSpeaking={isSpeaking && index === messages.length - 1 && msg.role === 'assistant'} 
+              />
+            ))}
             </AnimatePresence>
             {isProcessing && <TypingIndicator />}
           </div>
@@ -123,11 +201,16 @@ export default function ChatThread() {
                 aria-label="Chat input"
                 className="flex-grow bg-slate-800 border border-slate-600 rounded-lg py-2 px-3 text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all duration-300 resize-none leading-tight"
               />
-              <button onClick={handleSend} disabled={isProcessing} className="p-3 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-lg text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"><Send size={20} /></button>
+              <button onClick={() => handleSend()} disabled={isProcessing || !inputValue} className="p-3 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-lg text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"><Send size={20} /></button>
             </div>
           </div>
         </div>
       </div>
+      <VoiceVisualizer 
+        isListening={isListening} 
+        isSpeaking={isSpeaking} 
+        onClick={isListening ? stopListening : startListening} 
+      />
     </div>
   );
 }
@@ -136,20 +219,23 @@ const ErrorBanner = ({ error }) => (
   <div className="bg-red-800/90 text-white p-3 text-center text-sm flex items-center justify-center gap-3">
     <AlertTriangle size={18} />
     <span>{error.message}</span>
-        {error.type === 'INVALID_API_KEY' && <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
+        {error.type === 'INVALID_API_KEY' && <a href="https://elevenlabs.io/" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-200">Get Key</a>}
   </div>
 );
 
-const MessageBubble = ({ msg }) => (
+const MessageBubble = ({ msg, isSpeaking }) => (
   <motion.div
     initial={{ opacity: 0, y: 10, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.3 }}
-    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+  >
     <div
       role="log"
-      className={`max-w-sm md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-md ${msg.role === 'user' ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none' : `bg-slate-700/80 text-slate-200 rounded-bl-none ${msg.isError ? 'border border-red-500' : ''}`}`}>
-      {msg.content}
+      className={`max-w-sm md:max-w-md lg:max-w-lg px-4 py-2 rounded-xl shadow-md ${msg.role === 'user' ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none' : `bg-slate-700/80 text-slate-200 rounded-bl-none ${msg.isError ? 'border border-red-500' : ''}`}`}
+    >
+      {msg.role === 'assistant' ? <StreamingText text={msg.content} /> : msg.content}
+      {isSpeaking && <SpeakerIcon />}
     </div>
   </motion.div>
 );
