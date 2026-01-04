@@ -13,6 +13,7 @@
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.28.0",
     "@google/generative-ai": "^0.24.1",
+    "@openrouter/sdk": "^0.3.11",
     "@tensorflow-models/mobilenet": "^2.1.1",
     "@tensorflow/tfjs": "^4.22.0",
     "@tsparticles/react": "^3.0.0",
