@@ -15,6 +15,8 @@ const GovtSchemesPage = lazy(() => import('./pages/GovtSchemesPage'));
 const ChatThread = lazy(() => import('./pages/ChatThread'));
 const WeatherInsights = lazy(() => import('./pages/WeatherInsights'));
 const JobsPage = lazy(() => import('./pages/JobsPage'));
+const AiMitraChat = lazy(() => import('./pages/AiMitraChat'));
+const DemoOne = lazy(() => import('./pages/DemoOne'));
 
 function App() {
   const { t } = useTranslation();
@@ -22,8 +24,8 @@ function App() {
   const isChatPage = location.pathname.startsWith('/chat/');
 
   return (
-          <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#10172d] font-sans text-slate-200">
-        <ParticlesBackground />
+          <div className="min-h-screen font-sans text-slate-200">
+        {/* <ParticlesBackground /> */}
         {!isChatPage && <Navbar />}
         <main className="relative z-0">
           <Suspense fallback={<LoadingSpinner />}>
@@ -37,11 +39,13 @@ function App() {
               <Route path="/govt-schemes" element={<GovtSchemesPage />} />
               <Route path="/whatsapp-sms" element={<ModulePage title={t('whatsapp_sms_access')} />} />
               <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/ai-mitra/:chatId" element={<AiMitraChat />} />
+              <Route path="/demo" element={<DemoOne />} />
             </Routes>
           </Suspense>
         </main>
         {!isChatPage && <Footer />}
-      </div>
+</div>
       );
 }
 
