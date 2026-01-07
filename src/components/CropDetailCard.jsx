@@ -1,220 +1,199 @@
-/**
- * @file CropDetailCard.jsx
- * @description Displays detailed information about a selected crop.
- * Includes a hero image, tabs for different information categories (Overview, Symptoms, etc.),
- * and renders the content for the active tab. Uses micro-animations for a polished feel.
- * TODO: Implement client-side PDF generation for the 'Download PDF' button.
- * TODO: Connect 'Save to My Farm' to a more persistent storage or user account feature.
- */
+// @/src/components/CropDetailCard.jsx
 
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Download, Save, Image as ImageIcon, ChevronDown } from 'lucide-react';
-import CropCalendar from './CropCalendar';
-import CropGallery from './CropGallery';
-import Chatbot from './Chatbot';
+import { BookOpen, Bug, ShieldCheck, TestTube2, CalendarDays, AlertTriangle } from 'lucide-react';
+import RecommendedProducts from './RecommendedProducts';
+import { getContextualTip } from '../utils/cropLogic';
 
+// TabButton Component
+const TabButton = ({ icon: Icon, label, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-t-lg transition-all duration-200 border-b-2 ${
+      isActive
+        ? 'text-teal-300 border-teal-400 bg-teal-900/30'
+        : 'text-gray-400 border-transparent hover:bg-gray-700/50 hover:text-white'
+    }`}>
+    <Icon size={16} />
+    <span>{label}</span>
+  </button>
+);
+
+// Main Component
 const CropDetailCard = ({ crop }) => {
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
-  const [openAccordion, setOpenAccordion] = useState(null);
-  const [isGalleryOpen, setGalleryOpen] = useState(false);
-  const [galleryImages, setGalleryImages] = useState([]);
 
-  const handleAccordionToggle = (id) => {
-    setOpenAccordion(openAccordion === id ? null : id);
-  };
+  if (!crop) return null;
 
-  const handleOpenGallery = (images) => {
-    setGalleryImages(images);
-    setGalleryOpen(true);
-  };
+  const contextualTip = getContextualTip(crop.id);
+  const currentMonth = new Date().getMonth(); // 0-11
 
-  const handleDownloadPdf = () => {
-    // Mock PDF generation
-    const pdfContent = `Crop Care Plan for ${t(crop.name)}\n\n${JSON.stringify(crop, null, 2)}`;
-    const blob = new Blob([pdfContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${crop.id}-care-plan.txt`; // Changed to .txt for simplicity
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    alert('Downloaded a sample plan. (mock)');
-  };
-
-  const handleSaveToFarm = () => {
-    // Mock saving to localStorage
-    let myFarm = JSON.parse(localStorage.getItem('myFarm')) || [];
-    if (!myFarm.includes(crop.id)) {
-      myFarm.push(crop.id);
-      localStorage.setItem('myFarm', JSON.stringify(myFarm));
-      alert(`${t(crop.name)} saved to 'My Farm'.`);
-    }
-  };
-
-  const tabs = ['overview', 'symptoms', 'management', 'fertilizer', 'calendar', 'chat'];
-
-  const renderTabContent = () => {
+  const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return (
-          <div className="space-y-4">
-            <p className="text-[#9fb3c8] text-base leading-relaxed">{t(crop.overview.description)}</p>
-            <div>
-              <h4 className="font-semibold text-[#e8f1ff]">Ideal Sowing Window:</h4>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {crop.overview.sowingWindow.map(month => (
-                  <span key={month} className="bg-teal-400/10 text-teal-300 text-sm font-medium px-3 py-1 rounded-full border border-teal-400/20">{month}</span>
-                ))}
+          <div>
+            <h3 className="text-xl font-bold text-white mb-3">Overview</h3>
+            <p className="text-gray-300 mb-4">{crop.details.overview.description}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                <h4 className="font-semibold text-teal-300 mb-2">Climate Requirements</h4>
+                <p className="text-gray-400 text-sm">{crop.details.overview.climate}</p>
+              </div>
+              <div className="bg-gray-800/50 p-4 rounded-lg">
+                <h4 className="font-semibold text-teal-300 mb-2">Soil Requirements</h4>
+                <p className="text-gray-400 text-sm">{crop.details.overview.soil}</p>
               </div>
             </div>
-            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Spacing:</strong> {crop.overview.spacing}</p>
-            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Seed Rate:</strong> {crop.overview.seedRate}</p>
           </div>
         );
       case 'symptoms':
         return (
-          <div className="space-y-3">
-            {crop.symptoms.map(symptom => (
-              <div key={symptom.id} className="border border-white/10 rounded-md bg-white/5">
-                <button onClick={() => handleAccordionToggle(symptom.id)} className="w-full p-4 text-left flex justify-between items-center">
-                  <span className="font-semibold text-[#e8f1ff]">{t(symptom.name)}</span>
-                  <ChevronDown className={`transform transition-transform ${openAccordion === symptom.id ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {openAccordion === symptom.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="p-4 border-t border-white/10 bg-black/20">
-                        <p className="text-[#9fb3c8]"><strong>Cause:</strong> {symptom.cause}</p>
-                        <div className="mt-2">
-                          <strong className="text-green-400">Do:</strong>
-                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.do.map(d => <li key={d}>{d}</li>)}</ul>
-                        </div>
-                        <div className="mt-2">
-                          <strong className="text-red-400">Don't:</strong>
-                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.dont.map(d => <li key={d}>{d}</li>)}</ul>
-                        </div>
-                        <button onClick={() => handleOpenGallery(symptom.images)} className="mt-3 text-sm text-teal-400 hover:underline flex items-center space-x-1">
-                          <ImageIcon size={16} />
-                          <span>See Example Images</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
+          <div>
+            <h3 className="text-xl font-bold text-white mb-3">Common Pests & Diseases</h3>
+            <div className="space-y-4">
+              {crop.details.symptoms.map((symptom, index) => (
+                <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-yellow-300 flex items-center gap-2"><Bug size={16} /> {symptom.name}</h4>
+                  <p className="text-gray-400 text-sm mt-1">{symptom.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         );
       case 'management':
         return (
-          <div className="space-y-4">
-            {crop.management.map(stage => (
-              <div key={stage.stage} className="p-4 border border-white/10 rounded-lg bg-white/5">
-                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff]">{stage.stage}</h4>
-                <p className="font-semibold text-[#e8f1ff]">Organic Options:</p>
-                <ul className="list-disc list-inside ml-2 mb-2 text-[#9fb3c8]">{stage.organic.map(o => <li key={o}>{o}</li>)}</ul>
-                <p className="font-semibold text-[#e8f1ff]">Chemical Options:</p>
-                <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{stage.chemical.map(c => <li key={c}>{c}</li>)}</ul>
-                <p className="mt-3 text-sm text-yellow-200 bg-yellow-400/10 p-2 rounded-md border border-yellow-400/20"><strong>Safety Note:</strong> {stage.safetyNote}</p>
+          <div>
+            <h3 className="text-xl font-bold text-white mb-3">Management Strategies</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-green-300 mb-2">Do's</h4>
+                <ul className="list-disc list-inside space-y-2 text-gray-300">
+                  {crop.details.management.dos.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
               </div>
-            ))}
+              <div>
+                <h4 className="font-semibold text-red-300 mb-2">Don'ts</h4>
+                <ul className="list-disc list-inside space-y-2 text-gray-300">
+                  {crop.details.management.donts.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+              </div>
+            </div>
           </div>
         );
       case 'fertilizer':
         return (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white/5 border border-white/10 rounded-lg">
-              <thead className="bg-white/10">
-                <tr>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Timing</th>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">N-P-K Ratio</th>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {crop.fertilizerSchedule.map(item => (
-                  <tr key={item.timing} className="border-b border-white/10">
-                    <td className="p-3 text-[#9fb3c8]">{item.timing}</td>
-                    <td className="p-3 font-mono text-[#9fb3c8]">{item.npk}</td>
-                    <td className="p-3 text-[#9fb3c8]">{item.details}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            <h3 className="text-xl font-bold text-white mb-3">Fertilizer Plan</h3>
+            <div className="space-y-4">
+              {crop.details.fertilizer.plan.map((stage, index) => (
+                <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-300">{stage.stage}</h4>
+                  <p className="text-gray-400 text-sm mt-1">{stage.recommendation}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4 italic"><strong>Disclaimer:</strong> This is an advisory only. Consult a local agricultural expert for precise dosages.</p>
           </div>
         );
       case 'calendar':
-        return <CropCalendar calendarData={crop.calendar} />;
-      case 'chat':
-        return <Chatbot crop={crop} />;
+        return (
+          <div>
+            <h3 className="text-xl font-bold text-white mb-4">Farming Calendar</h3>
+            <div className="space-y-2">
+              {crop.details.calendar.map((task, index) => (
+                <div key={index} className={`flex items-start gap-4 p-3 rounded-lg border-l-4 ${
+                  task.months.includes(currentMonth) ? 'bg-teal-900/50 border-teal-400' : 'bg-gray-800/50 border-gray-600'
+                }`}>
+                  <div className="font-semibold text-gray-300 w-28 flex-shrink-0">{task.monthRange}</div>
+                  <div className="text-gray-400">{task.task}</div>
+                  {task.months.includes(currentMonth) && <span className="text-xs font-bold text-teal-200 ml-auto">CURRENT</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: BookOpen },
+    { id: 'symptoms', label: 'Symptoms', icon: Bug },
+    { id: 'management', label: 'Management', icon: ShieldCheck },
+    { id: 'fertilizer', label: 'Fertilizer', icon: TestTube2 },
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+  ];
+
   return (
-    <div className="bg-gradient-to-br from-[#0f1b2e] to-[#132b45] border border-teal-300/20 rounded-lg shadow-lg overflow-hidden">
-      <div className="relative">
-        <img src={crop.heroImage} alt={`${t(crop.name)} hero banner`} className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 p-4">
-          <h2 className="text-3xl font-bold text-[#e8f1ff]">{t(crop.name)}</h2>
-          <p className="text-[#9fb3c8] italic">{crop.scientificName}</p>
+    <div className="bg-[#132b45] rounded-xl border border-gray-700/50">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-700/50">
+        <h2 className="text-3xl font-bold text-white">{crop.name}</h2>
+        <p className="text-gray-400 mt-1">{crop.details.basic.description}</p>
+        
+        {/* Basic Info Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            <div className="bg-gray-800/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Sowing Window</p>
+                <p className="font-bold text-white text-md">{crop.details.basic.sowingWindow}</p>
+            </div>
+            <div className="bg-gray-800/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Seed Rate</p>
+                <p className="font-bold text-white text-md">{crop.details.basic.seedRate}</p>
+            </div>
+            <div className="bg-gray-800/50 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Spacing</p>
+                <p className="font-bold text-white text-md">{crop.details.basic.spacing}</p>
+            </div>
         </div>
-        <span className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full flex items-center space-x-1">
-          <Star size={14} />
-          <span>Difficulty: Easy</span>
-        </span>
       </div>
 
-      <div className="p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="border-b border-white/10">
-            <nav className="-mb-px flex space-x-4" aria-label="Tabs">
+      {/* Contextual Alert */}
+      {contextualTip && (
+        <div className="p-6 border-b border-gray-700/50">
+          <div className="bg-yellow-900/40 border border-yellow-700 rounded-lg p-4 flex items-center gap-3">
+            <AlertTriangle className="text-yellow-300 flex-shrink-0" size={24} />
+            <div>
+              <h4 className="font-bold text-yellow-200">Seasonal Alert</h4>
+              <p className="text-yellow-300 text-sm">{contextualTip}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row">
+        {/* Main Content */}
+        <div className="lg:w-2/3">
+          {/* Tabs */}
+          <div className="border-b border-gray-700/50 px-4">
+            <nav className="flex -mb-px">
               {tabs.map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`whitespace-nowrap py-3 px-2 border-b-2 font-semibold text-base capitalize transition-all duration-200 ${
-                    activeTab === tab
-                      ? 'border-[#34e89e] text-[#34e89e]'
-                      : 'border-transparent text-[#9fb3c8] hover:text-[#e8f1ff] hover:border-white/30'
-                  }`}
-                >
-                  {tab}
-                </button>
+                <TabButton 
+                  key={tab.id}
+                  icon={tab.icon}
+                  label={tab.label}
+                  isActive={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                />
               ))}
             </nav>
           </div>
-          <div className="flex space-x-2">
-            <button onClick={handleSaveToFarm} className="p-2 text-[#9fb3c8] hover:bg-white/10 rounded-full transition-colors" aria-label="Save to My Farm"><Save size={20} /></button>
-            <button onClick={handleDownloadPdf} className="p-2 text-[#9fb3c8] hover:bg-white/10 rounded-full transition-colors" aria-label="Download as PDF"><Download size={20} /></button>
+          
+          {/* Tab Content */}
+          <div className="p-6">
+            <div key={activeTab} className="animate-fade-in">
+              {renderContent()}
+            </div>
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -10, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderTabContent()}
-          </motion.div>
-        </AnimatePresence>
+        {/* Recommended Products Sidebar */}
+        <div className="lg:w-1/3 lg:border-l border-gray-700/50 p-6">
+          <RecommendedProducts cropId={crop.id} />
+        </div>
       </div>
-      {isGalleryOpen && <CropGallery images={galleryImages} onClose={() => setGalleryOpen(false)} cropName={t(crop.name)} />}
     </div>
   );
 };

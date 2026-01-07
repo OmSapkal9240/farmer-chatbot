@@ -1,67 +1,40 @@
-/**
- * @file SeasonSidebar.jsx
- * @description This file belongs to the Seasonal Advice module. It's the sidebar component.
- * It handles crop selection, PIN input, and actions like saving or exporting schedules.
- * TODO: Connect save/export functionality to a real user account backend.
- */
+// @/src/components/CropSidebar.jsx
 
 import React from 'react';
-import SeasonFilters from './SeasonFilters';
-import SeasonExport from './SeasonExport';
-import { MapPin } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 
-const SeasonSidebar = ({ crops, selectedCrop, onSelectCrop, pin, onPinChange, isLoading, onGetAdvice }) => {
-
+const CropSidebar = ({ crops, selectedCrop, onSelectCrop, location }) => {
   return (
-    <div className="bg-gray-800 p-6 rounded-lg space-y-6">
-      <div>
-        <label htmlFor="crop-select" className="block text-sm font-bold text-gray-300 mb-2">Select Crop</label>
-        <select
-          id="crop-select"
-          value={selectedCrop ? selectedCrop.id : ''}
-          onChange={(e) => {
-            const crop = crops.find(c => c.id === e.target.value);
-            onSelectCrop(crop || null);
-          }}
-          disabled={isLoading}
-          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <option value="" disabled>Select a crop...</option>
-          {crops.map(crop => (
-            <option key={crop.id} value={crop.id}>{crop.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="pin-input" className="block text-sm font-bold text-gray-300 mb-2">Region / PIN Code</label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            id="pin-input"
-            type="text"
-            value={pin}
-            onChange={(e) => onPinChange(e.target.value)}
-            placeholder="Enter 6-digit PIN"
-            maxLength={6}
-            disabled={isLoading}
-            className="w-full p-3 pl-10 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-        </div>
-      </div>
-
-      <SeasonFilters />
-
-      <button
-        onClick={onGetAdvice}
-        disabled={isLoading}
-        className="w-full p-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
-      >
-        {isLoading ? 'Getting Advice...' : 'Get Advice'}
-      </button>
-
+    <div className="bg-[#0f1b2e]/60 border border-teal-900/50 rounded-lg p-4 backdrop-blur-sm">
+      <h2 className="text-xl font-bold text-teal-300 mb-4">Recommended Crops</h2>
+      {location && (
+        <p className="text-xs text-gray-400 mb-4 -mt-2">
+          Based on your location: {location.district}, {location.state}
+        </p>
+      )}
+      <div className="space-y-2">
+        {crops.length > 0 ? (
+          crops.map((crop) => (
+            <button
+              key={crop.id}
+              onClick={() => onSelectCrop(crop)}
+              className={`w-full text-left p-3 rounded-md flex items-center gap-3 transition-all duration-200 group ring-1 ring-transparent hover:bg-teal-500/10 hover:ring-teal-400/50 focus:outline-none focus:ring-teal-400/80 ${selectedCrop?.id === crop.id ? 'bg-teal-500/20 ring-teal-400/70 shadow-lg shadow-teal-500/10' : 'bg-gray-800/20'}`}>
+              <div className={`p-2 rounded-md ${selectedCrop?.id === crop.id ? 'bg-teal-500/30' : 'bg-gray-700/50 group-hover:bg-teal-500/20'}`}>
+                <Leaf className={`w-6 h-6 transition-colors ${selectedCrop?.id === crop.id ? 'text-teal-300' : 'text-gray-400 group-hover:text-teal-400'}`} />
+              </div>
+              <span className={`font-semibold transition-colors ${selectedCrop?.id === crop.id ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                {crop.name}
+              </span>
+            </button>
+          ))
+        ) : (
+          <div className="text-center py-8 px-4 bg-gray-800/30 rounded-lg">
+            <p className="text-gray-400">No crop recommendations available for your current location and season.</p>
           </div>
+        )}
+      </div>
+    </div>
   );
 };
 
-export default SeasonSidebar;
+export default CropSidebar;

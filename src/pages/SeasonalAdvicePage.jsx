@@ -1,124 +1,169 @@
-/**
- * @file SeasonalAdvicePage.jsx
- * @description This file belongs to the Seasonal Advice module. It's the main page component.
- * It manages the state for the selected crop, month, filters, and orchestrates the child components.
- * TODO: Replace mock loading with actual data fetching from a backend.
- */
+// @/src/pages/CropCarePage.jsx
+// This file implements the complete Crop Care module using a robust, isolated provider pattern.
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { getCoordinatesForPin, getWeatherForecast } from '../utils/weather';
-import { getSeasonalAdvice } from '../utils/gemini';
-import { MONTHS } from '../utils/seasonUtils';
-import { SEASONAL_DATA } from '../data/seasonal';
-import SeasonSidebar from '../components/SeasonSidebar';
-import SeasonalCalendar from '../components/SeasonalCalendar';
-import SeasonalTips from '../components/SeasonalTips';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { getBrowserLocation, getLocationFromCoords } from '../utils/location';
+import { CROP_CARE_DETAILS, CROP_RECOMMENDATION_RULES, detectSeason } from '../data/cropData';
 
-const SeasonalAdvicePage = () => {
-  const { t, i18n } = useTranslation();
-  const [selectedCrop, setSelectedCrop] = useState(null);
-  const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
-  const [pin, setPin] = useState('');
-  const [advice, setAdvice] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+import CropSidebar from '../components/CropSidebar';
+import CropDetailCard from '../components/CropDetailCard';
+import LoadingSkeleton from '../components/LoadingSkeleton';
+import ErrorBanner from '../components/ErrorBanner';
+import { RefreshCw, MapPin } from 'lucide-react';
+
+// Location Provider: Manages all location state and logic, ensuring it's scoped to Crop Care.
+const CropCareLocationProvider = ({ children }) => {
+  const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [info, setInfo] = useState(null);
 
-  const handleGetAdvice = useCallback(async () => {
-    if (!selectedCrop) {
-      setError(t('seasonal.error.no_crop'));
-      return;
-    }
-    if (pin.length !== 6) {
-      setError(t('seasonal.error.invalid_pin'));
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { latitude, longitude, name: region } = await getCoordinatesForPin(pin);
-      const weatherData = await getWeatherForecast(latitude, longitude, selectedMonth);
+  useEffect(() => {
+    const fetchAndSetLocation = async () => {
+      setLoading(true);
+      const cachedLocation = localStorage.getItem('cropCareLocation');
 
-      const weatherSummary = t('seasonal.weather_summary', {
-        minTemp: Math.min(...weatherData.temperature_2m_min).toFixed(1),
-        maxTemp: Math.max(...weatherData.temperature_2m_max).toFixed(1),
-        precip: weatherData.precipitation_sum.reduce((a, b) => a + b, 0).toFixed(1)
-      });
+      if (cachedLocation) {
+        try {
+          const parsedLocation = JSON.parse(cachedLocation);
+          setLocation(parsedLocation);
+          setLoading(false);
+          return;
+        } catch (e) {
+          localStorage.removeItem('cropCareLocation');
+        }
+      }
 
-      const aiAdvice = await getSeasonalAdvice(selectedCrop, region, selectedMonth, weatherSummary, i18n.language);
-      setAdvice(aiAdvice);
-    } catch (err) {
-      setError(err.message || t('seasonal.error.unexpected'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedCrop, selectedMonth, pin]);
+      setInfo('Requesting location permission...');
+      try {
+        const coords = await getBrowserLocation();
+        setInfo('Permission granted. Fetching location details...');
+        const locationDetails = await getLocationFromCoords(coords.latitude, coords.longitude);
+        setLocation(locationDetails);
+        localStorage.setItem('cropCareLocation', JSON.stringify(locationDetails));
+      } catch (err) {
+        setError(err.message || 'Could not determine your location. Please enable location services in your browser.');
+        setInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleStartOver = () => {
-    setAdvice(null);
-    setError(null);
-    setSelectedCrop(null);
-    setPin('');
+    fetchAndSetLocation();
+  }, []);
+
+  const handleChangeLocation = () => {
+    localStorage.removeItem('cropCareLocation');
+    window.location.reload();
   };
 
-  
-    return (
-    <div className="container mx-auto p-4 md:p-6 bg-gray-900 text-white rounded-lg">
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-green-400">{t('seasonal.title')}</h1>
-        <p className="text-gray-400 mt-2">{t('seasonal.subtitle')}</p>
-      </header>
+  return children({ location, loading, error, info, handleChangeLocation });
+};
 
-      <div>
-        {advice ? (
-          // Output View
+// UI Component: Renders the UI based on props from the provider.
+const CropCareUI = ({ location, loading, error, info, handleChangeLocation }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedCropId, setSelectedCropId] = useState(null);
+  const [recommendedCrops, setRecommendedCrops] = useState([]);
+
+  useEffect(() => {
+    if (location) {
+      const month = new Date().getMonth();
+      const season = detectSeason(month);
+      const stateRules = CROP_RECOMMENDATION_RULES[location.state] || CROP_RECOMMENDATION_RULES.default;
+      const cropIds = stateRules[season] || [];
+      const crops = cropIds.map(id => CROP_CARE_DETAILS[id]).filter(Boolean);
+      setRecommendedCrops(crops);
+
+      const cropIdFromUrl = searchParams.get('crop');
+      const initialCrop = crops.find(c => c.id === cropIdFromUrl);
+
+      if (initialCrop) {
+        setSelectedCropId(initialCrop.id);
+      } else if (crops.length > 0) {
+        setSelectedCropId(crops[0].id);
+      }
+    }
+  }, [location]);
+
+  useEffect(() => {
+    if (selectedCropId) {
+      setSearchParams({ crop: selectedCropId }, { replace: true });
+    }
+  }, [selectedCropId, setSearchParams]);
+
+  const handleSelectCrop = (crop) => {
+    setSelectedCropId(crop.id);
+  };
+
+  const selectedCrop = CROP_CARE_DETAILS[selectedCropId];
+
+  return (
+    <div className="container mx-auto p-4 font-sans bg-gradient-to-br from-[#0f1b2e] to-[#132b45] text-[#e8f1ff] rounded-lg">
+      <header className="mb-6">
+        <div className="flex justify-between items-start">
           <div>
-            <div className="text-center mb-6">
-              <button 
-                onClick={handleStartOver}
-                className="mb-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
-                {t('seasonal.start_over')}
-              </button>
-              <h2 className="text-2xl font-bold">{t('seasonal.advice_for', { cropName: selectedCrop.name, month: selectedMonth })}</h2>
-              <p className="text-gray-400">{t('seasonal.location_pin', { pin })}</p>
-            </div>
-            <SeasonalTips
-              crop={selectedCrop}
-              month={selectedMonth}
-              advice={advice}
-              isLoading={isLoading}
-            />
+            <h1 className="text-3xl font-bold text-[#34e89e]">Crop Care Advisory</h1>
+            <p className="text-[#9fb3c8]">Your guide to healthy crops and better yields.</p>
           </div>
-        ) : (
-          // Input View
-          <div className="flex flex-col lg:flex-row lg:space-x-8">
-            <aside className="w-full lg:w-1/3 lg:max-w-md mb-8 lg:mb-0">
-              <SeasonSidebar
-                crops={SEASONAL_DATA.crops}
-                selectedCrop={selectedCrop}
-                onSelectCrop={setSelectedCrop}
-                pin={pin}
-                onPinChange={setPin}
-                isLoading={isLoading}
-                onGetAdvice={handleGetAdvice}
-              />
-            </aside>
-            <main className="w-full lg:w-2/3">
-              <SeasonalCalendar
-                selectedMonth={selectedMonth}
-                onSelectMonth={setSelectedMonth}
-              />
-              <div className="mt-6 text-center p-4 bg-gray-800 rounded-lg">
-                {error && <div className="text-red-500 mb-4">{t('seasonal.error.prefix')} {error}</div>}
-                <p className="text-gray-400">{t('seasonal.prompt.select_all')}</p>
-              </div>
-            </main>
+          {location && (
+            <button onClick={handleChangeLocation} className="flex items-center gap-2 text-sm text-teal-300 bg-teal-900/50 hover:bg-teal-900/80 px-3 py-2 rounded-md transition-colors">
+              <RefreshCw size={14} />
+              Change Location
+            </button>
+          )}
+        </div>
+
+        {location && !error && (
+          <div className="mt-4 p-3 bg-teal-900/50 border border-teal-700 rounded-lg flex items-center gap-3">
+            <MapPin className="text-teal-300" size={20} />
+            <span className="text-base text-teal-100">
+              Crop advice for <strong>{location.district}, {location.state}</strong>
+            </span>
           </div>
         )}
-      </div>
+
+        {info && !location && <ErrorBanner message={info} type="info" />}
+        {error && <ErrorBanner message={error} type="error" />}
+      </header>
+
+      {loading ? (
+        <LoadingSkeleton />
+      ) : location ? (
+        <div className="flex flex-col lg:flex-row lg:space-x-6">
+          <aside className="w-full lg:w-1/3 lg:max-w-sm mb-6 lg:mb-0">
+            <CropSidebar
+              crops={recommendedCrops}
+              selectedCrop={selectedCrop}
+              onSelectCrop={handleSelectCrop}
+              location={location}
+            />
+          </aside>
+          <main className="w-full lg:w-2/3">
+            {selectedCrop ? (
+              <CropDetailCard crop={selectedCrop} />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-[#0f1b2e]/50 rounded-lg p-8 text-center">
+                <p className="text-[#9fb3c8]">No recommended crops found for your location and season. Try changing the filters.</p>
+              </div>
+            )}
+          </main>
+        </div>
+      ) : (
+        <div className="text-center py-10">
+          <p className="text-lg text-gray-400">Please grant location access to receive personalized crop advisories.</p>
+        </div>
+      )}
     </div>
   );
 };
 
-export default SeasonalAdvicePage;
+// Main export that wraps the UI with the location provider.
+const CropCarePage = () => (
+  <CropCareLocationProvider>
+    {(props) => <CropCareUI {...props} />}
+  </CropCareLocationProvider>
+);
+
+export default CropCarePage;

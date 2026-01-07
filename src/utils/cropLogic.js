@@ -81,3 +81,30 @@ export const getRecommendedCrops = (state, season) => {
   const recommended = allCrops.filter(crop => cropIds.includes(crop.id));
   return recommended.length > 0 ? recommended : allCrops.slice(0, 5);
 };
+
+/**
+ * Returns a dynamic, context-aware tip based on the current month and crop stage.
+ * This simulates intelligence for the hackathon demo.
+ * @param {string} cropId - The ID of the selected crop.
+ * @returns {string} A helpful tip for the farmer.
+ */
+export const getContextualTip = (cropId) => {
+  const month = new Date().getMonth(); // 0 = January, 11 = December
+
+  // Example logic for Rice (id: 'paddy')
+  if (cropId === 'paddy') {
+    if (month >= 5 && month <= 7) return 'Kharif paddy sowing is underway. Ensure fields are well-puddled before transplanting seedlings.';
+    if (month >= 8 && month <= 10) return 'Monitor for pests like stem borer and leaf folder. High humidity increases the risk of blast disease.';
+    if (month >= 11 && month <= 1) return 'This is the harvesting period for Kharif paddy. Ensure grains are properly dried to prevent post-harvest losses.';
+  }
+
+  // Example logic for Wheat (id: 'wheat')
+  if (cropId === 'wheat') {
+    if (month >= 10 && month <= 11) return 'Rabi wheat sowing season. Ensure proper seed treatment to protect against seed-borne diseases.';
+    if (month >= 0 && month <= 2) return 'Critical irrigation stage (crown root initiation). A light irrigation is highly recommended for better yields.';
+    if (month === 3) return 'Monitor for aphids and rust disease as temperatures rise. Prepare for harvesting in the coming weeks.';
+  }
+
+  // Default tip
+  return 'Ensure regular monitoring of your field for any signs of pests or diseases. Early detection is key to effective management.';
+};
