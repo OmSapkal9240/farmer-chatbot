@@ -1,36 +1,38 @@
-const VITE_GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+import { OpenRouter } from "@openrouter/sdk";
+
+const VITE_GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; // Keep for translateText
 
 export const getSeasonalAdvice = async (crop, region, month, weatherSummary, language) => {
-  const prompt = `Provide seasonal farming advice for a farmer growing ${crop.name} in the ${region} region during the month of ${month}. The weather forecast summary is: ${weatherSummary}. The advice should be in ${language}.`;
+  const VITE_OPENROUTER_API_KEY_SEASONAL = import.meta.env.VITE_OPENROUTER_API_KEY_SEASONAL;
+  const prompt = `Provide seasonal farming advice for a farmer growing ${crop.name} in the ${region} region during the month of ${month}. The weather forecast summary is: ${weatherSummary}. The advice should be in ${language}, presented in clear, actionable steps.`;
+
+  if (!VITE_OPENROUTER_API_KEY_SEASONAL) {
+    throw new Error("VITE_OPENROUTER_API_KEY_SEASONAL is not set in the environment.");
+  }
+
+  const openrouter = new OpenRouter({ apiKey: VITE_OPENROUTER_API_KEY_SEASONAL });
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${VITE_GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      }),
+    const stream = await openrouter.chat.completions.create({
+      model: "openai/gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are an expert agricultural advisor providing seasonal farming tips." },
+        { role: "user", content: prompt },
+      ],
+      stream: true,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+    let content = '';
+    for await (const chunk of stream) {
+      content += chunk.choices[0]?.delta?.content || '';
     }
+    return content;
 
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error('Error getting seasonal advice:', error);
+    console.error('Error getting seasonal advice from OpenRouter:', error);
+    if (error.response && error.response.status === 402) {
+      throw new Error("Low credits on OpenRouter. Please check your account.");
+    }
     throw error;
   }
 };

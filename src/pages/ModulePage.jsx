@@ -21,7 +21,7 @@ const WhatsAppSMSPage = () => {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400 animate-shimmer bg-[length:200%_100%]">WhatsApp & SMS Crop Advisory</h1>
+          <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-300 via-cyan-300 to-green-300 animate-shimmer bg-[length:200%_100%] [text-shadow:0_0_15px_rgba(74,222,128,0.4)]">WhatsApp & SMS Crop Advisory</h1>
           <p className="text-xl text-slate-300 mb-6">Get instant crop guidance directly on your phone.</p>
           <div className="flex justify-center space-x-8 text-slate-400">
             <span>No app download needed</span>
@@ -43,7 +43,7 @@ const WhatsAppSMSPage = () => {
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <MessageCircle className="w-10 h-10 text-emerald-400 mr-4 shadow-icon-glow" />
+                <MessageCircle className="w-10 h-10 text-[#25D366] mr-4 shadow-icon-glow" />
               </motion.div>
               <h2 className="text-2xl font-semibold">Chat with Kisan Pulse on WhatsApp</h2>
             </div>
@@ -54,7 +54,7 @@ const WhatsAppSMSPage = () => {
               onClick={openWhatsApp}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20 hover:bg-emerald-500 transition-all duration-300 group animate-pulse-glow"
+              className="w-full bg-[#25D366] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center space-x-2 shadow-lg shadow-green-500/30 hover:bg-green-500 transition-all duration-300 group animate-pulse-glow"
             >
               <span>Start WhatsApp Chat</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -71,7 +71,7 @@ const WhatsAppSMSPage = () => {
           >
             <div className="flex items-center mb-4">
               <Smartphone className="w-10 h-10 text-slate-500 mr-4" />
-              <h2 className="text-2xl font-semibold text-slate-500">SMS Advisory (Coming Soon)</h2>
+              <h2 className="text-2xl font-semibold text-slate-400">SMS Advisory (Coming Soon)</h2>
             </div>
             <p className="text-slate-500 mb-6">
               Get updates and alerts directly via SMS. This feature is under development.

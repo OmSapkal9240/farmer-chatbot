@@ -9,7 +9,7 @@ const productsData = {
       useCase: 'Controls aphids & whiteflies',
       price: '₹280 – ₹350',
       link: 'https://www.amazon.in/s?k=Imidacloprid+17.8%25+SL',
-      image: 'https://via.placeholder.com/150/1a2e0b/ffffff?text=Imi',
+      image: 'https://picsum.photos/seed/Imi/150',
       icon: <Sprout size={16} className="text-yellow-400" />
     },
     {
@@ -18,7 +18,7 @@ const productsData = {
       useCase: 'Prevents leaf spot & blight',
       price: '₹220 – ₹300',
       link: 'https://www.flipkart.com/search?q=Mancozeb+75%25+WP',
-      image: 'https://via.placeholder.com/150/1a2e0b/ffffff?text=Man',
+      image: 'https://picsum.photos/seed/Man/150',
       icon: <Leaf size={16} className="text-red-400" />
     },
     {
@@ -27,7 +27,7 @@ const productsData = {
       useCase: 'Balanced crop nutrition',
       price: '₹950 – ₹1100',
       link: 'https://www.indiamart.com/search.mp?ss=NPK+19%3A19%3A19',
-      image: 'https://via.placeholder.com/150/1a2e0b/ffffff?text=NPK',
+      image: 'https://picsum.photos/seed/NPK/150',
       icon: <Droplets size={16} className="text-blue-400" />
     }
   ],
@@ -38,7 +38,7 @@ const productsData = {
       useCase: 'Broad-spectrum pest control',
       price: '₹350 – ₹450',
       link: 'https://example.com/neem-oil',
-      image: 'https://via.placeholder.com/150/1a2e0b/ffffff?text=Neem',
+      image: 'https://picsum.photos/seed/Neem/150',
       icon: <Sprout size={16} className="text-yellow-400" />
     },
   ]

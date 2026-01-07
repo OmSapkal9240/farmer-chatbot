@@ -1,26 +1,43 @@
 import { MONTHS } from './seasonUtils';
 
 export const getCoordinatesForPin = async (pin) => {
+  const VITE_RAPIDAPI_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
+  if (!VITE_RAPIDAPI_KEY) {
+    throw new Error('VITE_RAPIDAPI_KEY is not set in the environment. Please add it to your .env file.');
+  }
+
   if (!/^[1-9][0-9]{5}$/.test(pin)) {
     throw new Error('Invalid PIN code.');
   }
-  const response = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+
+  const url = `https://india-pincode-with-latitude-and-longitude.p.rapidapi.com/api/v1/pincode/${pin}`;
+  const options = {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-key': VITE_RAPIDAPI_KEY,
+      'x-rapidapi-host': 'india-pincode-with-latitude-and-longitude.p.rapidapi.com'
+    }
+  };
+
+  const response = await fetch(url, options);
   if (!response.ok) {
-    throw new Error('Failed to fetch location data.');
+    throw new Error('Failed to fetch location data from RapidAPI.');
   }
+
   const data = await response.json();
-  if (data[0].Status !== 'Success') {
-    throw new Error('PIN code not found.');
+  if (!data || data.length === 0) {
+    throw new Error('PIN code not found or API error.');
   }
-  const { District, State } = data[0].PostOffice[0];
-  // Using a geocoding API to get lat/long from district and state
-  const geoResponse = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${District},%20${State}&count=1&language=en&format=json`);
-  const geoData = await geoResponse.json();
-  if (!geoData.results) {
+
+  const location = data[0];
+  const { lat, lng, district, state } = location;
+  const name = `${district}, ${state}`;
+
+  if (!lat || !lng) {
     throw new Error('Could not find coordinates for the location.');
   }
-  const { latitude, longitude, name } = geoData.results[0];
-  return { latitude, longitude, name };
+
+  return { latitude: parseFloat(lat), longitude: parseFloat(lng), name };
 };
 
 export const getWeatherForecast = async (latitude, longitude, month) => {
@@ -29,7 +46,10 @@ export const getWeatherForecast = async (latitude, longitude, month) => {
     throw new Error('Invalid month provided.');
   }
 
-  const year = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const year = monthIndex > currentMonth ? currentYear - 1 : currentYear;
+
   const startDate = new Date(year, monthIndex, 1).toISOString().split('T')[0];
   const endDate = new Date(year, monthIndex + 1, 0).toISOString().split('T')[0];
 

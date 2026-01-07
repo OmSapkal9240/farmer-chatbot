@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { getPestDiagnosis } from '../services/diagnosisService';
@@ -25,6 +25,15 @@ const PestDiagnosisPage = () => {
   const [diagnosis, setDiagnosis] = useState(null); // Will store the JSON object
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Revoke the data uris to avoid memory leaks
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
     const onDrop = useCallback(acceptedFiles => {
     const droppedFile = acceptedFiles[0];

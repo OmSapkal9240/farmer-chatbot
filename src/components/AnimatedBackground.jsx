@@ -17,8 +17,8 @@ const AnimatedBackground = () => {
           ease: 'easeInOut',
         }}
       />
-      <div className="absolute top-0 left-0 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-breathing"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-breathing animation-delay-4000"></div>
+      <div className="absolute top-0 left-0 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-breathing"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-breathing animation-delay-4000"></div>
     </div>
   );
 };

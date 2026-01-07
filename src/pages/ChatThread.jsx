@@ -48,6 +48,14 @@ export default function ChatThread() {
     }
   }, [chatId]);
 
+  // Check for API key on mount
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    if (!apiKey || apiKey === '<PUT_OPENROUTER_API_KEY_HERE>') {
+      setError({ type: 'DEMO_MODE', message: 'API key not found. The chat is in demo mode.' });
+    }
+  }, []);
+
   // Speak the bot's message
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -106,10 +114,10 @@ export default function ChatThread() {
     try {
       const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
       if (!apiKey || apiKey === '<PUT_OPENROUTER_API_KEY_HERE>') {
-        setError({ type: 'DEMO_MODE', message: 'API key not found. Running in demo mode.' });
+        // The error is already set by the useEffect hook, so we just show a message.
         const botMessage = {
           role: 'assistant',
-          content: "I'm in demo mode. Please provide an OpenRouter API key to enable full functionality."
+          content: "I'm in demo mode. Please set the VITE_OPENROUTER_API_KEY in your .env file to enable full functionality."
         };
         setMessages(prev => [...prev, botMessage]);
         setIsProcessing(false);

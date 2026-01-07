@@ -1,169 +1,245 @@
-// @/src/pages/CropCarePage.jsx
-// This file implements the complete Crop Care module using a robust, isolated provider pattern.
+import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { OpenRouter } from "@openrouter/sdk";
+import { MONTHS } from '../utils/seasonUtils';
+import { SEASONAL_DATA } from '../data/seasonal';
+import SeasonSidebar from '../components/SeasonSidebar';
+import SeasonalCalendar from '../components/SeasonalCalendar';
+import FormattedAdvice from '../components/FormattedAdvice';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { getBrowserLocation, getLocationFromCoords } from '../utils/location';
-import { CROP_CARE_DETAILS, CROP_RECOMMENDATION_RULES, detectSeason } from '../data/cropData';
-
-import CropSidebar from '../components/CropSidebar';
-import CropDetailCard from '../components/CropDetailCard';
-import LoadingSkeleton from '../components/LoadingSkeleton';
-import ErrorBanner from '../components/ErrorBanner';
-import { RefreshCw, MapPin } from 'lucide-react';
-
-// Location Provider: Manages all location state and logic, ensuring it's scoped to Crop Care.
-const CropCareLocationProvider = ({ children }) => {
-  const [location, setLocation] = useState(null);
-  const [loading, setLoading] = useState(true);
+const SeasonalAdvicePage = () => {
+  const { t, i18n } = useTranslation();
+  const [selectedCrop, setSelectedCrop] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [pin, setPin] = useState('');
+  const [advice, setAdvice] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
 
-  useEffect(() => {
-    const fetchAndSetLocation = async () => {
-      setLoading(true);
-      const cachedLocation = localStorage.getItem('cropCareLocation');
+  const handleGetAdvice = useCallback(async () => {
+    if (!selectedCrop) {
+      setError(t('seasonal.error.no_crop'));
+      return;
+    }
+    if (pin.length !== 6) {
+      setError(t('seasonal.error.invalid_pin'));
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    setAdvice('');
 
-      if (cachedLocation) {
-        try {
-          const parsedLocation = JSON.parse(cachedLocation);
-          setLocation(parsedLocation);
-          setLoading(false);
-          return;
-        } catch (e) {
-          localStorage.removeItem('cropCareLocation');
+    try {
+      const openrouter = new OpenRouter({
+        apiKey: import.meta.env.VITE_OPENROUTER_API_KEY_SEASONAL,
+      });
+
+      const stream = await openrouter.chat.send({
+        model: "openai/gpt-4o-mini-search-preview",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert agricultural advisor.
+
+This prompt is used ONLY for the Seasonal Farming Advice section.
+
+Your goal is to produce output that is:
+- Extremely easy to read
+- Farmer-friendly
+- Mobile-screen optimized
+- Visually clean and engaging
+- NOT boring or text-heavy
+
+--------------------------------------------------
+
+GLOBAL OUTPUT RULES (VERY STRICT):
+
+1. NEVER produce a single long paragraph.
+2. NEVER dump all information together.
+3. Each idea must be separated clearly.
+4. Use short sentences only.
+5. Emojis are ALLOWED and ENCOURAGED, but use them smartly.
+6. Do NOT use markdown symbols like ** ### ---.
+7. Do NOT sound like a textbook or research article.
+8. Output should feel like a friendly expert guiding the farmer step-by-step.
+
+--------------------------------------------------
+
+OUTPUT VISUAL STYLE (IMPORTANT):
+
+- Think like WhatsApp-style guidance
+- Think like Instagram carousel text
+- Think like a field expert talking calmly
+
+--------------------------------------------------
+
+MANDATORY OUTPUT STRUCTURE (FOLLOW EXACTLY):
+
+LINE 1 (HEADER):
+🌱 Crop Name | District, State | Month
+
+LINE 2 (ONE-LINE SUMMARY):
+Why this month is good or risky for this crop (1 short line only).
+
+--------------------------------------------------
+
+SECTION 1: 🌦️ Weather Check
+- 2 short lines max
+- Mention temperature and rainfall feel (not numbers heavy)
+- Say clearly: Good / Average / Risky
+
+--------------------------------------------------
+
+SECTION 2: 🌾 What To Do This Month
+(Only ACTIONS, no theory)
+
+1️⃣ Soil work (1 short line)
+2️⃣ Seed or plant choice (1 short line)
+3️⃣ Sowing or transplant timing (1 short line)
+
+--------------------------------------------------
+
+SECTION 3: 💧 Water & Nutrition
+- Irrigation frequency in simple words
+- Fertilizer advice in plain language
+- Avoid numbers unless very necessary
+
+--------------------------------------------------
+
+SECTION 4: 🐛 Watch Out For
+- Name 1–2 common problems
+- 1 symptom farmers can easily recognize
+- 1 simple control step
+
+--------------------------------------------------
+
+SECTION 5: 🌿 Daily Care Tips
+- 3 bullet-style short tips
+- Things farmer should check daily/weekly
+
+--------------------------------------------------
+
+SECTION 6: 🌾 Harvest & Storage (If applicable)
+- When to harvest (visible sign)
+- One storage tip
+
+--------------------------------------------------
+
+SECTION 7: ⭐ Expert Advice (MOST IMPORTANT)
+Write this like a senior farmer talking.
+
+Rules:
+- 3 short lines only
+- Warn about 1 common mistake
+- Give 1 smart tip for better yield
+- End with reassurance
+
+Example tone:
+“जास्त पाणी देणे टाळा. वेळेवर निरीक्षण केल्यास नुकसान टळते. साधी काळजी मोठा फायदा देते.”
+
+--------------------------------------------------
+
+LANGUAGE RULES:
+- Detect user language automatically.
+- Respond ONLY in the same language.
+- Keep tone warm, practical, and human.
+
+--------------------------------------------------
+
+FINAL SELF-CHECK BEFORE ANSWERING:
+- Can this be read comfortably on a phone?
+- Can a farmer understand it in 30 seconds?
+- Does it feel friendly, not boring?
+
+If YES, respond.`,
+          },
+          {
+            role: "user",
+            content: `Crop: ${selectedCrop.name}, PIN Code: ${pin}, Month: ${selectedMonth}, Language: ${i18n.language}`,
+          },
+        ],
+        stream: true,
+      });
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          setAdvice((prevAdvice) => prevAdvice + content);
         }
       }
+    } catch (err) {
+      setError(err.message || t('seasonal.error.unexpected'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCrop, selectedMonth, pin, t]);
 
-      setInfo('Requesting location permission...');
-      try {
-        const coords = await getBrowserLocation();
-        setInfo('Permission granted. Fetching location details...');
-        const locationDetails = await getLocationFromCoords(coords.latitude, coords.longitude);
-        setLocation(locationDetails);
-        localStorage.setItem('cropCareLocation', JSON.stringify(locationDetails));
-      } catch (err) {
-        setError(err.message || 'Could not determine your location. Please enable location services in your browser.');
-        setInfo(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAndSetLocation();
-  }, []);
-
-  const handleChangeLocation = () => {
-    localStorage.removeItem('cropCareLocation');
-    window.location.reload();
+  const handleStartOver = () => {
+    setSelectedCrop(null);
+    setAdvice('');
+    setError(null);
+    setPin('');
   };
 
-  return children({ location, loading, error, info, handleChangeLocation });
-};
-
-// UI Component: Renders the UI based on props from the provider.
-const CropCareUI = ({ location, loading, error, info, handleChangeLocation }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCropId, setSelectedCropId] = useState(null);
-  const [recommendedCrops, setRecommendedCrops] = useState([]);
-
-  useEffect(() => {
-    if (location) {
-      const month = new Date().getMonth();
-      const season = detectSeason(month);
-      const stateRules = CROP_RECOMMENDATION_RULES[location.state] || CROP_RECOMMENDATION_RULES.default;
-      const cropIds = stateRules[season] || [];
-      const crops = cropIds.map(id => CROP_CARE_DETAILS[id]).filter(Boolean);
-      setRecommendedCrops(crops);
-
-      const cropIdFromUrl = searchParams.get('crop');
-      const initialCrop = crops.find(c => c.id === cropIdFromUrl);
-
-      if (initialCrop) {
-        setSelectedCropId(initialCrop.id);
-      } else if (crops.length > 0) {
-        setSelectedCropId(crops[0].id);
-      }
-    }
-  }, [location]);
-
-  useEffect(() => {
-    if (selectedCropId) {
-      setSearchParams({ crop: selectedCropId }, { replace: true });
-    }
-  }, [selectedCropId, setSearchParams]);
-
-  const handleSelectCrop = (crop) => {
-    setSelectedCropId(crop.id);
-  };
-
-  const selectedCrop = CROP_CARE_DETAILS[selectedCropId];
-
-  return (
-    <div className="container mx-auto p-4 font-sans bg-gradient-to-br from-[#0f1b2e] to-[#132b45] text-[#e8f1ff] rounded-lg">
-      <header className="mb-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-[#34e89e]">Crop Care Advisory</h1>
-            <p className="text-[#9fb3c8]">Your guide to healthy crops and better yields.</p>
+  if (advice || isLoading || error) {
+    return (
+      <div className="container mx-auto p-4 font-sans">
+        {isLoading ? (
+          <div className="text-center">
+            <p>{t('seasonal.loading')}</p>
           </div>
-          {location && (
-            <button onClick={handleChangeLocation} className="flex items-center gap-2 text-sm text-teal-300 bg-teal-900/50 hover:bg-teal-900/80 px-3 py-2 rounded-md transition-colors">
-              <RefreshCw size={14} />
-              Change Location
+        ) : error ? (
+          <div className="text-center text-red-400">
+            <p>{error}</p>
+            <button 
+              onClick={handleStartOver}
+              className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            >
+              {t('seasonal.try_again')}
             </button>
-          )}
-        </div>
-
-        {location && !error && (
-          <div className="mt-4 p-3 bg-teal-900/50 border border-teal-700 rounded-lg flex items-center gap-3">
-            <MapPin className="text-teal-300" size={20} />
-            <span className="text-base text-teal-100">
-              Crop advice for <strong>{location.district}, {location.state}</strong>
-            </span>
+          </div>
+        ) : (
+          <div>
+            <div className="text-center mb-6">
+              <button 
+                onClick={handleStartOver}
+                className="mb-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                {t('seasonal.start_over')}
+              </button>
+              <h2 className="text-2xl font-bold">{t('seasonal.advice_for', { cropName: selectedCrop.name, month: selectedMonth })}</h2>
+              <p className="text-gray-400">{t('seasonal.location_pin', { pin })}</p>
+            </div>
+            <FormattedAdvice text={advice} />
           </div>
         )}
+      </div>
+    );
+  }
 
-        {info && !location && <ErrorBanner message={info} type="info" />}
-        {error && <ErrorBanner message={error} type="error" />}
-      </header>
-
-      {loading ? (
-        <LoadingSkeleton />
-      ) : location ? (
-        <div className="flex flex-col lg:flex-row lg:space-x-6">
-          <aside className="w-full lg:w-1/3 lg:max-w-sm mb-6 lg:mb-0">
-            <CropSidebar
-              crops={recommendedCrops}
-              selectedCrop={selectedCrop}
-              onSelectCrop={handleSelectCrop}
-              location={location}
-            />
-          </aside>
-          <main className="w-full lg:w-2/3">
-            {selectedCrop ? (
-              <CropDetailCard crop={selectedCrop} />
-            ) : (
-              <div className="flex items-center justify-center h-full bg-[#0f1b2e]/50 rounded-lg p-8 text-center">
-                <p className="text-[#9fb3c8]">No recommended crops found for your location and season. Try changing the filters.</p>
-              </div>
-            )}
-          </main>
-        </div>
-      ) : (
-        <div className="text-center py-10">
-          <p className="text-lg text-gray-400">Please grant location access to receive personalized crop advisories.</p>
-        </div>
-      )}
+  return (
+    <div className="container mx-auto p-4 font-sans">
+      <div className="flex flex-col lg:flex-row lg:space-x-6">
+        <aside className="w-full lg:w-1/3 lg:max-w-sm mb-6 lg:mb-0">
+          <SeasonSidebar
+            crops={SEASONAL_DATA}
+            selectedCrop={selectedCrop}
+            onSelectCrop={setSelectedCrop}
+          />
+        </aside>
+        <main className="w-full lg:w-2/3">
+          <SeasonalCalendar
+            selectedMonth={selectedMonth}
+            onSelectMonth={setSelectedMonth}
+            pin={pin}
+            onPinChange={setPin}
+            onGetAdvice={handleGetAdvice}
+            isCropSelected={!!selectedCrop}
+          />
+        </main>
+      </div>
     </div>
   );
 };
 
-// Main export that wraps the UI with the location provider.
-const CropCarePage = () => (
-  <CropCareLocationProvider>
-    {(props) => <CropCareUI {...props} />}
-  </CropCareLocationProvider>
-);
-
-export default CropCarePage;
+export default SeasonalAdvicePage;
