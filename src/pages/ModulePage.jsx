@@ -1,10 +1,4 @@
 import React from 'react';
-<<<<<<< HEAD
-import CropCareDashboard from './CropCare/CropCareDashboard';
-
-const ModulePage = () => {
-  return <CropCareDashboard />;
-=======
 import { motion } from 'framer-motion';
 import { MessageCircle, Smartphone, ArrowRight } from 'lucide-react';
 import AnimatedBackground from '../components/AnimatedBackground';
@@ -95,7 +89,6 @@ const WhatsAppSMSPage = () => {
       </div>
     </div>
   );
->>>>>>> 657a147a1a05d15a6fb457201b63fd8a39d223f0
 };
 
 export default WhatsAppSMSPage; 
