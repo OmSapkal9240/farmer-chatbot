@@ -45,7 +45,7 @@ const productsData = {
 };
 
 const ProductCard = ({ product }) => (
-  <div className="bg-white/5 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-teal-500/20 border border-white/10">
+  <div className="bg-white/5 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-teal-500/20 border border-white/10 w-52 flex-shrink-0">
     <img src={product.image} alt={product.name} className="w-full h-20 object-cover rounded-md mb-3" />
     <h4 className="font-bold text-base text-[#e8f1ff] truncate">{product.name}</h4>
     <div className="flex items-center space-x-2 text-xs text-[#9fb3c8] mb-1">
@@ -76,7 +76,7 @@ const RecommendedProducts = ({ cropId }) => {
         <span>Recommended Products</span>
       </h3>
       <p className="text-sm text-[#9fb3c8] mb-4">Trusted inputs for your crop</p>
-      <div className="grid grid-cols-1 gap-4">
+      <div className="flex space-x-4 overflow-x-auto pb-4">
         {products.map((product) => (
           <ProductCard key={product.name} product={product} />
         ))}

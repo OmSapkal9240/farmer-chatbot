@@ -18,6 +18,8 @@ export default {
       animation: {
         'breathing': 'breathing 3s ease-in-out infinite',
         'hue-shift': 'hue-shift 5s linear infinite',
+        'shimmer': 'shimmer 4s linear infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
       },
       keyframes: {
         breathing: {
@@ -27,7 +29,15 @@ export default {
         'hue-shift': {
           '0%, 100%': { filter: 'hue-rotate(0deg)' },
           '50%': { filter: 'hue-rotate(-20deg)' },
-        }
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' },
+          '50%': { boxShadow: '0 0 30px rgba(16, 185, 129, 0.8)' },
+        },
       }
     },
   },

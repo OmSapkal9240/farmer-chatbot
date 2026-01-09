@@ -7,7 +7,7 @@ import ParticlesBackground from './components/ParticlesBackground';
 import LoadingSpinner from './components/LoadingSpinner';
 
 const Home = lazy(() => import('./pages/Home'));
-const ModulePage = lazy(() => import('./pages/ModulePage'));
+const WhatsAppSMSPage = lazy(() => import('./pages/ModulePage'));
 const CropCarePage = lazy(() => import('./components/CropCarePage'));
 const PestDiagnosisPage = lazy(() => import('./pages/PestDiagnosisPage'));
 const SeasonalAdvicePage = lazy(() => import('./pages/SeasonalAdvicePage'));
@@ -37,7 +37,7 @@ function App() {
               <Route path="/pest-diagnosis" element={<PestDiagnosisPage />} />
               <Route path="/seasonal-advice" element={<SeasonalAdvicePage />} />
               <Route path="/govt-schemes" element={<GovtSchemesPage />} />
-              <Route path="/whatsapp-sms" element={<ModulePage title={t('whatsapp_sms_access')} />} />
+              <Route path="/whatsapp-sms" element={<WhatsAppSMSPage title={t('whatsapp_sms_access')} />} />
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/ai-mitra/:chatId" element={<AiMitraChat />} />
               <Route path="/demo" element={<DemoOne />} />

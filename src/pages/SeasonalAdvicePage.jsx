@@ -1,10 +1,3 @@
-/**
- * @file SeasonalAdvicePage.jsx
- * @description This file belongs to the Seasonal Advice module. It's the main page component.
- * It manages the state for the selected crop, month, filters, and orchestrates the child components.
- * TODO: Replace mock loading with actual data fetching from a backend.
- */
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OpenRouter } from "@openrouter/sdk";
@@ -182,23 +175,30 @@ If YES, respond.`,
   }, [selectedCrop, selectedMonth, pin, t]);
 
   const handleStartOver = () => {
-    setAdvice(null);
-    setError(null);
     setSelectedCrop(null);
+    setAdvice('');
+    setError(null);
     setPin('');
   };
 
-  
+  if (advice || isLoading || error) {
     return (
-    <div className="container mx-auto p-4 md:p-6 bg-gray-900 text-white rounded-lg">
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-green-400">{t('seasonal.title')}</h1>
-        <p className="text-gray-400 mt-2">{t('seasonal.subtitle')}</p>
-      </header>
-
-      <div>
-        {advice ? (
-          // Output View
+      <div className="container mx-auto p-4 font-sans">
+        {isLoading ? (
+          <div className="text-center">
+            <p>{t('seasonal.loading')}</p>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-400">
+            <p>{error}</p>
+            <button 
+              onClick={handleStartOver}
+              className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            >
+              {t('seasonal.try_again')}
+            </button>
+          </div>
+        ) : (
           <div>
             <div className="text-center mb-6">
               <button 
@@ -212,32 +212,31 @@ If YES, respond.`,
             </div>
             <FormattedAdvice text={advice} />
           </div>
-        ) : (
-          // Input View
-          <div className="flex flex-col lg:flex-row lg:space-x-8">
-            <aside className="w-full lg:w-1/3 lg:max-w-md mb-8 lg:mb-0">
-              <SeasonSidebar
-                crops={SEASONAL_DATA.crops}
-                selectedCrop={selectedCrop}
-                onSelectCrop={setSelectedCrop}
-                pin={pin}
-                onPinChange={setPin}
-                isLoading={isLoading}
-                onGetAdvice={handleGetAdvice}
-              />
-            </aside>
-            <main className="w-full lg:w-2/3">
-              <SeasonalCalendar
-                selectedMonth={selectedMonth}
-                onSelectMonth={setSelectedMonth}
-              />
-              <div className="mt-6 text-center p-4 bg-gray-800 rounded-lg">
-                {error && <div className="text-red-500 mb-4">{t('seasonal.error.prefix')} {error}</div>}
-                <p className="text-gray-400">{t('seasonal.prompt.select_all')}</p>
-              </div>
-            </main>
-          </div>
         )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-4 font-sans">
+      <div className="flex flex-col lg:flex-row lg:space-x-6">
+        <aside className="w-full lg:w-1/3 lg:max-w-sm mb-6 lg:mb-0">
+          <SeasonSidebar
+            crops={SEASONAL_DATA}
+            selectedCrop={selectedCrop}
+            onSelectCrop={setSelectedCrop}
+          />
+        </aside>
+        <main className="w-full lg:w-2/3">
+          <SeasonalCalendar
+            selectedMonth={selectedMonth}
+            onSelectMonth={setSelectedMonth}
+            pin={pin}
+            onPinChange={setPin}
+            onGetAdvice={handleGetAdvice}
+            isCropSelected={!!selectedCrop}
+          />
+        </main>
       </div>
     </div>
   );
