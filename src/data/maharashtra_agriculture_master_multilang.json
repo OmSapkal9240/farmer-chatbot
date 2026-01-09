@@ -1,0 +1,154 @@
+{
+  "state": "Maharashtra",
+  "districts": [
+    "Ahmednagar","Akola","Amravati","Aurangabad","Beed","Bhandara","Buldhana",
+    "Chandrapur","Dhule","Gadchiroli","Gondia","Hingoli","Jalgaon","Jalna",
+    "Kolhapur","Latur","Mumbai City","Mumbai Suburban","Nagpur","Nanded",
+    "Nandurbar","Nashik","Osmanabad","Palghar","Parbhani","Pune","Raigad",
+    "Ratnagiri","Sangli","Satara","Sindhudurg","Solapur","Thane","Wardha",
+    "Washim","Yavatmal"
+  ],
+
+  "agro_zones": {
+    "Konkan": {
+      "districts": ["Raigad","Ratnagiri","Sindhudurg","Thane","Palghar"],
+      "rainfall": "High",
+      "main_crops": ["Rice","Mango","Coconut","Cashew"]
+    },
+    "Western_Maharashtra": {
+      "districts": ["Pune","Satara","Sangli","Kolhapur","Nashik"],
+      "rainfall": "Moderate",
+      "main_crops": ["Sugarcane","Grapes","Onion","Wheat"]
+    },
+    "Marathwada": {
+      "districts": ["Beed","Latur","Osmanabad","Nanded","Jalna","Parbhani","Hingoli"],
+      "rainfall": "Low and irregular",
+      "main_crops": ["Soybean","Tur","Jowar","Bajra","Chickpea"],
+      "avoid_crops": ["Sugarcane"]
+    },
+    "Vidarbha": {
+      "districts": ["Yavatmal","Akola","Amravati","Nagpur","Wardha"],
+      "rainfall": "Moderate",
+      "main_crops": ["Cotton","Soybean","Pulses"]
+    }
+  },
+
+  "knowledge_chunks": [
+
+    {
+      "id": "mh_beed_soybean",
+      "languages": {
+        "english": {
+          "title": "Soybean farming in Beed",
+          "content": "Soybean is a major Kharif crop in Beed district. Due to low and irregular rainfall, short-duration varieties are preferred. Yellow Mosaic Virus caused by whitefly is a common problem."
+        },
+        "hindi": {
+          "title": "बीड में सोयाबीन की खेती",
+          "content": "सोयाबीन बीड जिले की प्रमुख खरीफ फसल है। कम और अनियमित बारिश के कारण कम अवधि वाली किस्में उपयुक्त रहती हैं। सफेद मक्खी से फैलने वाला पीला मोज़ेक रोग आम समस्या है।"
+        },
+        "marathi": {
+          "title": "बीडमधील सोयाबीन शेती",
+          "content": "सोयाबीन हे बीड जिल्ह्यातील प्रमुख खरीप पीक आहे. पावसाची अनियमितता असल्यामुळे कमी कालावधीची वाण योग्य ठरतात. पांढऱ्या माशीमुळे पिवळा मोझॅक रोग आढळतो।"
+        }
+      },
+      "solutions": {
+        "english": ["Use resistant varieties","Control whitefly","Avoid late sowing"],
+        "hindi": ["प्रतिरोधी किस्में अपनाएं","सफेद मक्खी का नियंत्रण करें","देरी से बुवाई से बचें"],
+        "marathi": ["प्रतिरोधक वाण वापरा","पांढऱ्या माशीचे नियंत्रण करा","उशिरा पेरणी टाळा"]
+      },
+      "metadata": {
+        "state": "Maharashtra",
+        "district": "Beed",
+        "zone": "Marathwada",
+        "crop": "Soybean",
+        "season": "Kharif",
+        "query_tags": [
+          "beed soybean problem",
+          "बीड सोयाबीन",
+          "बीड मध्ये सोयाबीन रोग"
+        ]
+      }
+    },
+
+    {
+      "id": "mh_nashik_onion",
+      "languages": {
+        "english": {
+          "title": "Onion farming in Nashik",
+          "content": "Nashik is famous for onion cultivation. Purple blotch disease and thrips attack are common issues."
+        },
+        "hindi": {
+          "title": "नाशिक में प्याज़ की खेती",
+          "content": "नाशिक प्याज़ उत्पादन के लिए प्रसिद्ध है। बैंगनी धब्बा रोग और थ्रिप्स कीट आम समस्या हैं।"
+        },
+        "marathi": {
+          "title": "नाशिकमधील कांदा शेती",
+          "content": "नाशिक जिल्हा कांदा उत्पादनासाठी प्रसिद्ध आहे. जांभळा डाग रोग व थ्रिप्स किडीचा प्रादुर्भाव होतो।"
+        }
+      },
+      "solutions": {
+        "english": ["Proper spacing","Fungicide spray","Neem oil for thrips"],
+        "hindi": ["उचित दूरी रखें","फफूंदनाशक का छिड़काव","थ्रिप्स के लिए नीम तेल"],
+        "marathi": ["योग्य अंतर ठेवा","बुरशीनाशक फवारणी","थ्रिप्ससाठी नीम तेल"]
+      },
+      "metadata": {
+        "district": "Nashik",
+        "crop": "Onion",
+        "season": "Rabi"
+      }
+    },
+
+    {
+      "id": "mh_western_sugarcane",
+      "languages": {
+        "english": {
+          "title": "Sugarcane in Western Maharashtra",
+          "content": "Sugarcane is widely grown in Western Maharashtra under irrigated conditions. Red rot disease is a major concern."
+        },
+        "hindi": {
+          "title": "पश्चिम महाराष्ट्र में गन्ना",
+          "content": "पश्चिम महाराष्ट्र में सिंचाई आधारित गन्ने की खेती होती है। रेड रॉट रोग एक बड़ी समस्या है।"
+        },
+        "marathi": {
+          "title": "पश्चिम महाराष्ट्रातील ऊस",
+          "content": "पश्चिम महाराष्ट्रात सिंचनावर आधारित ऊस शेती केली जाते. लाल कुज रोग ही मोठी समस्या आहे।"
+        }
+      },
+      "solutions": {
+        "english": ["Use disease-free setts","Hot water treatment","Crop rotation"],
+        "hindi": ["रोगमुक्त बेने उपयोग करें","गरम पाण्याची प्रक्रिया","फसल चक्र अपनाएं"],
+        "marathi": ["रोगमुक्त बेणे वापरा","गरम पाण्याची प्रक्रिया","पीक फेरपालट"]
+      },
+      "metadata": {
+        "zone": "Western_Maharashtra",
+        "crop": "Sugarcane"
+      }
+    }
+  ],
+
+  "farming_practices": {
+    "common": {
+      "english": ["Drip irrigation","Soil testing","Organic manure"],
+      "hindi": ["ड्रिप सिंचाई","मिट्टी परीक्षण","सेंद्रिय खाद"],
+      "marathi": ["ठिबक सिंचन","माती परीक्षण","सेंद्रिय खत"]
+    }
+  },
+
+  "government_schemes": {
+    "PM_KISAN": {
+      "english": "6000 INR per year income support",
+      "hindi": "6000 रुपये प्रति वर्ष आय सहायता",
+      "marathi": "दरवर्षी 6000 रुपये उत्पन्न सहाय्य"
+    },
+    "PMFBY": {
+      "english": "Crop insurance for farmers",
+      "hindi": "फसल बीमा योजना",
+      "marathi": "पीक विमा योजना"
+    },
+    "PMKSY": {
+      "english": "Drip irrigation subsidy",
+      "hindi": "ड्रिप सिंचाई अनुदान",
+      "marathi": "ठिबक सिंचन अनुदान"
+    }
+  }
+}

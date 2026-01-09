@@ -1,0 +1,17 @@
+
+# SvelteKit build files
+.svelte-kit
+build
+
+# Node modules
+node_modules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+node_modules/
+pnpm-lock.yaml
+dist/
+.env
