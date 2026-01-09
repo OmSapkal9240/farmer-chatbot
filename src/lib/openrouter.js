@@ -41,17 +41,28 @@ Now, please explain the "${schemeName}" scheme.`;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep the potentially incomplete last line in the buffer
+
       const parsedLines = lines
         .map(line => line.replace(/^data: /, '').trim())
         .filter(line => line !== '' && line !== '[DONE]' && !line.startsWith(':')) // Ignore comment lines
-        .map(line => JSON.parse(line));
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch (e) {
+            console.error('Failed to parse JSON line:', line, e);
+            return null;
+          }
+        })
+        .filter(Boolean);
 
       for (const parsedLine of parsedLines) {
         const { choices } = parsedLine;
@@ -107,17 +118,28 @@ Now, please explain the "${section}" for ${cropName}.`;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep the potentially incomplete last line
+
       const parsedLines = lines
         .map(line => line.replace(/^data: /, '').trim())
         .filter(line => line !== '' && line !== '[DONE]' && !line.startsWith(':'))
-        .map(line => JSON.parse(line));
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch (e) {
+            console.error('Failed to parse JSON line:', line, e);
+            return null;
+          }
+        })
+        .filter(Boolean);
 
       for (const parsedLine of parsedLines) {
         const { choices } = parsedLine;
@@ -177,17 +199,28 @@ Now, please provide the recommendations.`;
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // Keep the potentially incomplete last line in the buffer
+
       const parsedLines = lines
         .map(line => line.replace(/^data: /, '').trim())
         .filter(line => line !== '' && line !== '[DONE]' && !line.startsWith(':')) // Ignore comment lines
-        .map(line => JSON.parse(line));
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch (e) {
+            console.error('Failed to parse JSON line:', line, e);
+            return null;
+          }
+        })
+        .filter(Boolean);
 
       for (const parsedLine of parsedLines) {
         const { choices } = parsedLine;
