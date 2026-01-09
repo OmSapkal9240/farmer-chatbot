@@ -1,40 +1,74 @@
-// @/src/components/CropSidebar.jsx
-
 import React from 'react';
-import { Leaf } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const CropSidebar = ({ crops, selectedCrop, onSelectCrop, location }) => {
+const SeasonSidebar = ({ crops, selectedCrop, onSelectCrop, pin, onPinChange, isLoading, onGetAdvice }) => {
+  const { t } = useTranslation();
+
   return (
-    <div className="bg-[#0f1b2e]/60 border border-teal-900/50 rounded-lg p-4 backdrop-blur-sm">
-      <h2 className="text-xl font-bold text-teal-300 mb-4">Recommended Crops</h2>
-      {location && (
-        <p className="text-xs text-gray-400 mb-4 -mt-2">
-          Based on your location: {location.district}, {location.state}
-        </p>
-      )}
-      <div className="space-y-2">
-        {crops.length > 0 ? (
-          crops.map((crop) => (
-            <button
-              key={crop.id}
-              onClick={() => onSelectCrop(crop)}
-              className={`w-full text-left p-3 rounded-md flex items-center gap-3 transition-all duration-200 group ring-1 ring-transparent hover:bg-teal-500/10 hover:ring-teal-400/50 focus:outline-none focus:ring-teal-400/80 ${selectedCrop?.id === crop.id ? 'bg-teal-500/20 ring-teal-400/70 shadow-lg shadow-teal-500/10' : 'bg-gray-800/20'}`}>
-              <div className={`p-2 rounded-md ${selectedCrop?.id === crop.id ? 'bg-teal-500/30' : 'bg-gray-700/50 group-hover:bg-teal-500/20'}`}>
-                <Leaf className={`w-6 h-6 transition-colors ${selectedCrop?.id === crop.id ? 'text-teal-300' : 'text-gray-400 group-hover:text-teal-400'}`} />
-              </div>
-              <span className={`font-semibold transition-colors ${selectedCrop?.id === crop.id ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                {crop.name}
-              </span>
-            </button>
-          ))
-        ) : (
-          <div className="text-center py-8 px-4 bg-gray-800/30 rounded-lg">
-            <p className="text-gray-400">No crop recommendations available for your current location and season.</p>
-          </div>
-        )}
+    <div className="bg-gray-800 p-6 rounded-lg space-y-6">
+      <div>
+        <label htmlFor="crop-select" className="block text-sm font-medium text-gray-300 mb-2">{t('seasonal.sidebar.select_crop')}</label>
+        <select
+          id="crop-select"
+          value={selectedCrop ? selectedCrop.id : ''}
+          onChange={(e) => {
+            const crop = crops.find(c => c.id === e.target.value);
+            onSelectCrop(crop);
+          }}
+          className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="" disabled>{t('seasonal.sidebar.select_a_crop')}</option>
+          {crops.map(crop => (
+            <option key={crop.id} value={crop.id}>{crop.name}</option>
+          ))}
+        </select>
       </div>
+
+      <div>
+        <label htmlFor="pin-input" className="block text-sm font-medium text-gray-300 mb-2">{t('seasonal.sidebar.region_pin')}</label>
+        <input
+          id="pin-input"
+          type="text"
+          value={pin}
+          onChange={(e) => onPinChange(e.target.value)}
+          placeholder={t('seasonal.sidebar.enter_pin')}
+          maxLength="6"
+          className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-gray-300 mb-3">{t('seasonal.sidebar.filters')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="season-filter" className="block text-sm font-medium text-gray-300 mb-2">{t('seasonal.sidebar.season')}</label>
+            <select id="season-filter" className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+              <option>{t('seasonal.sidebar.all')}</option>
+              <option>{t('seasonal.sidebar.kharif')}</option>
+              <option>{t('seasonal.sidebar.rabi')}</option>
+              <option>{t('seasonal.sidebar.zaid')}</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="practice-filter" className="block text-sm font-medium text-gray-300 mb-2">{t('seasonal.sidebar.farming_practice')}</label>
+            <select id="practice-filter" className="w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+              <option>{t('seasonal.sidebar.any')}</option>
+              <option>{t('seasonal.sidebar.organic')}</option>
+              <option>{t('seasonal.sidebar.conventional')}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={onGetAdvice}
+        disabled={isLoading || !selectedCrop || pin.length !== 6}
+        className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-md hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors duration-300"
+      >
+        {isLoading ? t('seasonal.sidebar.loading') : t('seasonal.sidebar.get_advice')}
+      </button>
     </div>
   );
 };
 
-export default CropSidebar;
+export default SeasonSidebar;

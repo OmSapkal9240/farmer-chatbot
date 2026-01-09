@@ -39,41 +39,9 @@ const SeasonalAdvicePage = () => {
         messages: [
           {
             role: "system",
-            content: `You are an expert agricultural advisor.
+            content: `You are an expert agricultural advisor providing seasonal farming advice. Your response must be easy to read, farmer-friendly, and mobile-optimized. Use short sentences, emojis, and a clear, sectioned format. Do not use markdown formatting like **, ###, or ---. The tone should be warm, practical, and human, like a friendly expert. Respond only in the user's language.
 
-This prompt is used ONLY for the Seasonal Farming Advice section.
-
-Your goal is to produce output that is:
-- Extremely easy to read
-- Farmer-friendly
-- Mobile-screen optimized
-- Visually clean and engaging
-- NOT boring or text-heavy
-
---------------------------------------------------
-
-GLOBAL OUTPUT RULES (VERY STRICT):
-
-1. NEVER produce a single long paragraph.
-2. NEVER dump all information together.
-3. Each idea must be separated clearly.
-4. Use short sentences only.
-5. Emojis are ALLOWED and ENCOURAGED, but use them smartly.
-6. Do NOT use markdown symbols like ** ### ---.
-7. Do NOT sound like a textbook or research article.
-8. Output should feel like a friendly expert guiding the farmer step-by-step.
-
---------------------------------------------------
-
-OUTPUT VISUAL STYLE (IMPORTANT):
-
-- Think like WhatsApp-style guidance
-- Think like Instagram carousel text
-- Think like a field expert talking calmly
-
---------------------------------------------------
-
-MANDATORY OUTPUT STRUCTURE (FOLLOW EXACTLY):
+MANDATORY OUTPUT STRUCTURE:
 
 LINE 1 (HEADER):
 🌱 Crop Name | District, State | Month
@@ -84,14 +52,13 @@ Why this month is good or risky for this crop (1 short line only).
 --------------------------------------------------
 
 SECTION 1: 🌦️ Weather Check
-- 2 short lines max
-- Mention temperature and rainfall feel (not numbers heavy)
-- Say clearly: Good / Average / Risky
+- 2 short lines max on temperature and rainfall feel.
+- State: Good / Average / Risky.
 
 --------------------------------------------------
 
 SECTION 2: 🌾 What To Do This Month
-(Only ACTIONS, no theory)
+(Actions only)
 
 1️⃣ Soil work (1 short line)
 2️⃣ Seed or plant choice (1 short line)
@@ -100,39 +67,31 @@ SECTION 2: 🌾 What To Do This Month
 --------------------------------------------------
 
 SECTION 3: 💧 Water & Nutrition
-- Irrigation frequency in simple words
-- Fertilizer advice in plain language
-- Avoid numbers unless very necessary
+- Simple irrigation and fertilizer advice.
 
 --------------------------------------------------
 
 SECTION 4: 🐛 Watch Out For
-- Name 1–2 common problems
-- 1 symptom farmers can easily recognize
-- 1 simple control step
+- 1-2 common problems with symptoms and a simple control step.
 
 --------------------------------------------------
 
 SECTION 5: 🌿 Daily Care Tips
-- 3 bullet-style short tips
-- Things farmer should check daily/weekly
+- 3 short, bullet-style tips for daily/weekly checks.
 
 --------------------------------------------------
 
 SECTION 6: 🌾 Harvest & Storage (If applicable)
-- When to harvest (visible sign)
-- One storage tip
+- One visible sign for when to harvest and one storage tip.
 
 --------------------------------------------------
 
-SECTION 7: ⭐ Expert Advice (MOST IMPORTANT)
-Write this like a senior farmer talking.
-
-Rules:
-- 3 short lines only
-- Warn about 1 common mistake
-- Give 1 smart tip for better yield
-- End with reassurance
+SECTION 7: ⭐ Expert Advice
+(Like a senior farmer talking)
+- 3 short lines only.
+- Warn about 1 common mistake.
+- Give 1 smart tip for better yield.
+- End with reassurance.
 
 Example tone:
 “जास्त पाणी देणे टाळा. वेळेवर निरीक्षण केल्यास नुकसान टळते. साधी काळजी मोठा फायदा देते.”
@@ -159,6 +118,7 @@ If YES, respond.`,
           },
         ],
         stream: true,
+        max_tokens: 4096,
       });
 
       for await (const chunk of stream) {
@@ -181,62 +141,59 @@ If YES, respond.`,
     setPin('');
   };
 
-  if (advice || isLoading || error) {
-    return (
-      <div className="container mx-auto p-4 font-sans">
-        {isLoading ? (
-          <div className="text-center">
-            <p>{t('seasonal.loading')}</p>
-          </div>
-        ) : error ? (
-          <div className="text-center text-red-400">
-            <p>{error}</p>
-            <button 
-              onClick={handleStartOver}
-              className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-            >
-              {t('seasonal.try_again')}
-            </button>
-          </div>
-        ) : (
+  return (
+    <div className="container mx-auto p-4 md:p-6 bg-gray-900 text-white rounded-lg">
+      <header className="text-center mb-6">
+        <h1 className="text-4xl font-bold text-green-400">{t('seasonal.title')}</h1>
+        <p className="text-gray-400 mt-2">{t('seasonal.subtitle')}</p>
+      </header>
+
+      <div>
+        {advice ? (
+          // Output View
           <div>
             <div className="text-center mb-6">
               <button 
                 onClick={handleStartOver}
                 className="mb-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
               >
-                {t('seasonal.start_over')}
+                New/ Start Over
               </button>
               <h2 className="text-2xl font-bold">{t('seasonal.advice_for', { cropName: selectedCrop.name, month: selectedMonth })}</h2>
               <p className="text-gray-400">{t('seasonal.location_pin', { pin })}</p>
             </div>
             <FormattedAdvice text={advice} />
           </div>
+        ) : (
+          // Input View
+          <div className="flex flex-col lg:flex-row lg:space-x-8">
+            <aside className="w-full lg:w-1/3 lg:max-w-md mb-8 lg:mb-0">
+              <SeasonSidebar
+                crops={SEASONAL_DATA.crops}
+                selectedCrop={selectedCrop}
+                onSelectCrop={setSelectedCrop}
+                pin={pin}
+                onPinChange={setPin}
+                isLoading={isLoading}
+                onGetAdvice={handleGetAdvice}
+              />
+            </aside>
+            <main className="w-full lg:w-2/3">
+              <SeasonalCalendar
+                selectedMonth={selectedMonth}
+                onSelectMonth={setSelectedMonth}
+              />
+              <div className="mt-6 text-center p-4 bg-gray-800 rounded-lg">
+                {error && <div className="text-red-500 mb-4">{t('seasonal.error.prefix')} {error}</div>}
+                {isLoading ? (
+                  <p>{t('seasonal.loading')}</p>
+                ) : (
+                  <p className="text-gray-400">{t('seasonal.prompt.select_all')}</p>
+                )}
+              </div>
+            </main>
+          </div>
         )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-4 font-sans">
-      <div className="flex flex-col lg:flex-row lg:space-x-6">
-        <aside className="w-full lg:w-1/3 lg:max-w-sm mb-6 lg:mb-0">
-          <SeasonSidebar
-            crops={SEASONAL_DATA}
-            selectedCrop={selectedCrop}
-            onSelectCrop={setSelectedCrop}
-          />
-        </aside>
-        <main className="w-full lg:w-2/3">
-          <SeasonalCalendar
-            selectedMonth={selectedMonth}
-            onSelectMonth={setSelectedMonth}
-            pin={pin}
-            onPinChange={setPin}
-            onGetAdvice={handleGetAdvice}
-            isCropSelected={!!selectedCrop}
-          />
-        </main>
       </div>
     </div>
   );
