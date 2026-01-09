@@ -15,8 +15,7 @@ const modules = [
   { icon: '🐛', titleKey: 'home.modules.pest_diagnosis.title', descKey: 'home.modules.pest_diagnosis.desc', path: '/pest-diagnosis' },
   { icon: '📅', titleKey: 'home.modules.seasonal_advice.title', descKey: 'home.modules.seasonal_advice.desc', path: '/seasonal-advice' },
   { icon: '🏛️', titleKey: 'home.modules.govt_schemes.title', descKey: 'home.modules.govt_schemes.desc', path: '/govt-schemes' },
-  { icon: '📲', titleKey: 'home.modules.whatsapp_sms.title', descKey: 'home.modules.whatsapp_sms.desc', path: '/whatsapp-sms' },
-];
+  ];
 
 const FloatingFarmIcon = () => (
   <motion.div 
@@ -97,18 +96,10 @@ export default function Home() {
       {/* Modules Grid */}
       <section className="mt-28 relative">
         {/* <SectionBackground /> */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {modules.map((mod, i) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {modules.filter(m => m.path !== '/ai-mitra/new').map((mod, i) => {
             const title = mod.isExternal ? mod.titleKey : t(mod.titleKey);
             const desc = mod.isExternal ? mod.descKey : t(mod.descKey);
-
-            if (mod.path === '/ai-mitra/new') {
-              return (
-                                <div key={i} onClick={startAiMitraChat} className="cursor-pointer">
-                  <ModuleCard icon={mod.icon} title={title} desc={desc} delay={i} iconOnly={true} />
-                </div>
-              );
-            }
 
             return (
               <Link to={mod.path} key={i}>
@@ -118,6 +109,26 @@ export default function Home() {
           })}
         </div>
       </section>
+
+      {/* AI Mitra Floating Action Button */}
+      <motion.div
+        className="fixed bottom-8 right-8 z-50 group"
+        initial={{ scale: 0, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.5 }}
+        whileHover={{ scale: 1.1 }}
+      >
+        <button
+          onClick={startAiMitraChat}
+          className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-cyan-500 transition-all duration-300 border-2 border-slate-700 hover:border-cyan-400"
+          aria-label="Start AI Mitra Chat"
+        >
+          🤖
+        </button>
+        <div className="absolute -top-12 right-0 w-max bg-slate-800 text-white text-xs rounded-md px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          AI Mitra (Local RAG)
+        </div>
+      </motion.div>
     </main>
   );
 }

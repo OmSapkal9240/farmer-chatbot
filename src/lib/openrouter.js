@@ -68,6 +68,72 @@ Now, please explain the "${schemeName}" scheme.`;
   }
 };
 
+export const getCropCareInfo = async (cropName, section, onChunk) => {
+  const prompt = `You are an experienced and friendly agriculture expert. Your goal is to provide practical, easy-to-understand advice to farmers.
+
+**Your Task:**
+Explain the "${section}" for growing ${cropName} in a simple, farmer-friendly manner.
+
+**Output Rules (Strict):**
+1.  **Tone:** Speak like a seasoned field expert giving advice. Be encouraging and clear.
+2.  **Language:** Use simple, everyday words. Avoid academic or technical jargon.
+3.  **Formatting:**
+    - Do NOT use any markdown symbols like *, #, -, or **.
+    - Use short, readable paragraphs.
+
+**Content Focus:**
+- Provide actionable tips and common mistakes to avoid.
+- Keep the information concise and to the point.
+
+Now, please explain the "${section}" for ${cropName}.`;
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${VITE_OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      const parsedLines = lines
+        .map(line => line.replace(/^data: /, '').trim())
+        .filter(line => line !== '' && line !== '[DONE]' && !line.startsWith(':'))
+        .map(line => JSON.parse(line));
+
+      for (const parsedLine of parsedLines) {
+        const { choices } = parsedLine;
+        const { delta } = choices[0];
+        const { content } = delta;
+        if (content) {
+          onChunk(content);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error getting crop care information:', error);
+    throw error;
+  }
+};
+
 export const getSchemeRecommendation = async (criteria, onChunk) => {
   const prompt = `You are a helpful and friendly government scheme expert for farmers. Your goal is to recommend the best schemes based on a farmer's needs.
 

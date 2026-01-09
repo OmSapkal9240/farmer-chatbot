@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 const useElevenLabsTTS = () => {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
+    const [ttsError, setTtsError] = useState(null);
     const audioRef = useRef(null);
 
     const unlockAudio = useCallback(() => {
@@ -17,8 +18,9 @@ const useElevenLabsTTS = () => {
         if (!isAudioUnlocked || !text || isSpeaking) return;
 
         const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-        if (!apiKey) {
-            console.error('ElevenLabs API Key is missing.');
+        if (!apiKey || apiKey === '<PUT_ELEVENLABS_API_KEY_HERE>') {
+            setTtsError({ type: 'INVALID_API_KEY', message: 'ElevenLabs API key not found.' });
+            setIsSpeaking(false);
             return;
         }
 
@@ -48,9 +50,11 @@ const useElevenLabsTTS = () => {
         };
 
         try {
+            setTtsError(null);
             const response = await fetch(url, options);
             if (!response.ok) {
-                throw new Error('Failed to fetch audio from ElevenLabs');
+                const errorData = await response.json();
+                throw new Error(errorData.detail?.message || 'Failed to fetch audio from ElevenLabs');
             }
             const blob = await response.blob();
             const audioUrl = URL.createObjectURL(blob);
@@ -68,7 +72,8 @@ const useElevenLabsTTS = () => {
                 }
             };
         } catch (error) {
-            console.error(error);
+            console.error('ElevenLabs TTS Error:', error);
+            setTtsError({ type: 'API_ERROR', message: error.message });
             setIsSpeaking(false);
         }
     }, [isSpeaking, isAudioUnlocked]);
@@ -81,7 +86,7 @@ const useElevenLabsTTS = () => {
         setIsSpeaking(false);
     }, []);
 
-    return { isSpeaking, speak, cancel, isAudioUnlocked, unlockAudio };
+    return { isSpeaking, speak, cancel, isAudioUnlocked, unlockAudio, ttsError };
 };
 
 export default useElevenLabsTTS;

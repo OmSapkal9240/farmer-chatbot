@@ -107,7 +107,7 @@ const CropCarePage = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 font-sans bg-gradient-to-br from-[#0f1b2e] to-[#132b45] text-[#e8f1ff] rounded-lg">
+    <div className="container mx-auto p-4 font-sans rounded-lg">
       <header className="mb-6">
         {error && !loading && <ManualLocationInput onPinSubmit={handlePinSubmit} />}
         {error && <ErrorBanner message={error} />}

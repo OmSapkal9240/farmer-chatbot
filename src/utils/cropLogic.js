@@ -70,14 +70,6 @@ export const getDynamicWeatherTip = (weather, crop) => {
 };
 
 export const getRecommendedCrops = (state, season) => {
-  const stateMapping = cropMapping[state] || cropMapping['default'];
-  const cropIds = stateMapping[season] || [];
-  
-  if (cropIds.length === 0) {
-    // Fallback to a default list if no specific crops are mapped
-    return allCrops.slice(0, 5);
-  }
-
-  const recommended = allCrops.filter(crop => cropIds.includes(crop.id));
-  return recommended.length > 0 ? recommended : allCrops.slice(0, 5);
+  // For now, return all crops. The recommendation logic can be re-implemented later.
+  return allCrops;
 };

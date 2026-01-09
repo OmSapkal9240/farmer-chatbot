@@ -56,109 +56,85 @@ const CropDetailCard = ({ crop }) => {
     }
   };
 
-  const tabs = ['overview', 'symptoms', 'management', 'fertilizer', 'calendar', 'chat'];
+  const tabs = ['overview', 'management', 'fertilizer', 'calendar', 'chat'];
+
+  const renderValue = (value) => {
+    if (Array.isArray(value)) {
+      return (
+        <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">
+          {value.map((item, index) => (
+            <li key={index}>{typeof item === 'object' ? renderObject(item) : item}</li>
+          ))}
+        </ul>
+      );
+    }
+    if (typeof value === 'object' && value !== null) {
+      return renderObject(value);
+    }
+    return <p className="text-[#9fb3c8]">{value}</p>;
+  };
+
+  const renderObject = (obj) => (
+    <div className="space-y-2 mt-1">
+      {Object.entries(obj).map(([key, val]) => (
+        <div key={key}>
+          <strong className="text-[#e8f1ff] capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}:</strong>
+          <div className="pl-2">{renderValue(val)}</div>
+        </div>
+      ))}
+    </div>
+  );
 
   const renderTabContent = () => {
+    if (!crop) return null;
+
+    const sections = {
+      overview: crop.overview,
+      climate: crop.climateAndSoil,
+      sowing: crop.sowingAndPlanting,
+      irrigation: crop.irrigation,
+      nutrients: crop.nutrientCare,
+      pests: crop.pestAndDisease,
+      weeds: crop.weedManagement,
+      harvesting: crop.harvesting,
+      tips: crop.farmerTips,
+    };
+
     switch (activeTab) {
       case 'overview':
         return (
-          <div className="space-y-4">
-            <p className="text-[#9fb3c8] text-base leading-relaxed">{t(crop.overview.description)}</p>
-            <div>
-              <h4 className="font-semibold text-[#e8f1ff]">Ideal Sowing Window:</h4>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {crop.overview.sowingWindow.map(month => (
-                  <span key={month} className="bg-teal-400/10 text-teal-300 text-sm font-medium px-3 py-1 rounded-full border border-teal-400/20">{month}</span>
-                ))}
-              </div>
+            <div className="space-y-4 p-4 border border-white/10 rounded-lg bg-white/5">
+                {renderObject(sections.overview)}
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff] mt-4">Climate & Soil</h4>
+                {renderObject(sections.climate)}
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff] mt-4">Sowing & Planting</h4>
+                {renderObject(sections.sowing)}
             </div>
-            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Spacing:</strong> {crop.overview.spacing}</p>
-            <p className="text-[#9fb3c8]"><strong className="text-[#e8f1ff]">Seed Rate:</strong> {crop.overview.seedRate}</p>
-          </div>
-        );
-      case 'symptoms':
-        return (
-          <div className="space-y-3">
-            {crop.symptoms.map(symptom => (
-              <div key={symptom.id} className="border border-white/10 rounded-md bg-white/5">
-                <button onClick={() => handleAccordionToggle(symptom.id)} className="w-full p-4 text-left flex justify-between items-center">
-                  <span className="font-semibold text-[#e8f1ff]">{t(symptom.name)}</span>
-                  <ChevronDown className={`transform transition-transform ${openAccordion === symptom.id ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {openAccordion === symptom.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="p-4 border-t border-white/10 bg-black/20">
-                        <p className="text-[#9fb3c8]"><strong>Cause:</strong> {symptom.cause}</p>
-                        <div className="mt-2">
-                          <strong className="text-green-400">Do:</strong>
-                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.do.map(d => <li key={d}>{d}</li>)}</ul>
-                        </div>
-                        <div className="mt-2">
-                          <strong className="text-red-400">Don't:</strong>
-                          <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{symptom.action.dont.map(d => <li key={d}>{d}</li>)}</ul>
-                        </div>
-                        <button onClick={() => handleOpenGallery(symptom.images)} className="mt-3 text-sm text-teal-400 hover:underline flex items-center space-x-1">
-                          <ImageIcon size={16} />
-                          <span>See Example Images</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
         );
       case 'management':
         return (
-          <div className="space-y-4">
-            {crop.management.map(stage => (
-              <div key={stage.stage} className="p-4 border border-white/10 rounded-lg bg-white/5">
-                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff]">{stage.stage}</h4>
-                <p className="font-semibold text-[#e8f1ff]">Organic Options:</p>
-                <ul className="list-disc list-inside ml-2 mb-2 text-[#9fb3c8]">{stage.organic.map(o => <li key={o}>{o}</li>)}</ul>
-                <p className="font-semibold text-[#e8f1ff]">Chemical Options:</p>
-                <ul className="list-disc list-inside ml-2 text-[#9fb3c8]">{stage.chemical.map(c => <li key={c}>{c}</li>)}</ul>
-                <p className="mt-3 text-sm text-yellow-200 bg-yellow-400/10 p-2 rounded-md border border-yellow-400/20"><strong>Safety Note:</strong> {stage.safetyNote}</p>
-              </div>
-            ))}
-          </div>
+            <div className="space-y-4 p-4 border border-white/10 rounded-lg bg-white/5">
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff]">Irrigation</h4>
+                {renderObject(sections.irrigation)}
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff] mt-4">Pest and Disease</h4>
+                {renderObject(sections.pests)}
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff] mt-4">Weed Management</h4>
+                {renderObject(sections.weeds)}
+            </div>
         );
       case 'fertilizer':
         return (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white/5 border border-white/10 rounded-lg">
-              <thead className="bg-white/10">
-                <tr>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Timing</th>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">N-P-K Ratio</th>
-                  <th className="p-3 text-left font-semibold text-[#e8f1ff]">Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {crop.fertilizerSchedule.map(item => (
-                  <tr key={item.timing} className="border-b border-white/10">
-                    <td className="p-3 text-[#9fb3c8]">{item.timing}</td>
-                    <td className="p-3 font-mono text-[#9fb3c8]">{item.npk}</td>
-                    <td className="p-3 text-[#9fb3c8]">{item.details}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="p-4 border border-white/10 rounded-lg bg-white/5">
+                <h4 className="font-bold text-lg mb-2 text-[#e8f1ff]">Nutrient Care</h4>
+                {renderObject(sections.nutrients)}
+            </div>
         );
       case 'calendar':
-        return <CropCalendar calendarData={crop.calendar} />;
+        return <CropCalendar calendarData={crop.growthCalendar} />;
       case 'chat':
         return <Chatbot crop={crop} />;
       default:
-        return null;
+        return <p>Select a tab</p>;
     }
   };
 

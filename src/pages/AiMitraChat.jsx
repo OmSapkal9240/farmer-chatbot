@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAiMitraResponse } from '../utils/aiMitra';
 import { createSystemPrompt } from '../lib/context';
 import useVoiceRecognition from '../hooks/useVoiceRecognition';
-import useElevenLabsTTS from '../hooks/useElevenLabsTTS';
+import usePiperTTS from '../hooks/usePiperTTS';
 import GeneratingLoader from '../components/GeneratingLoader';
 import SpeakerIcon from '../components/SpeakerIcon';
 import { useTranslation } from 'react-i18next';
-import { stripMarkdown } from '../utils/formatters';
+import { stripMarkdown, stripEmojis } from '../utils/formatters';
 import StreamingText from '../components/StreamingText';
 
 export default function AiMitraChat() {
@@ -18,10 +18,12 @@ export default function AiMitraChat() {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+  const [lastSpokenMessageId, setLastSpokenMessageId] = useState(null);
   const [error, setError] = useState(null);
   const chatContainerRef = useRef(null);
   const { i18n } = useTranslation();
-  const [voiceGender, setVoiceGender] = useState('female');
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   const languageMap = {
     en: 'en-IN',
@@ -31,7 +33,7 @@ export default function AiMitraChat() {
   const currentLang = languageMap[i18n.language] || 'en-IN';
 
   const { isListening, transcript, startListening, stopListening } = useVoiceRecognition(currentLang);
-  const { speak, isSpeaking, cancel, isAudioUnlocked, unlockAudio, ttsError } = useElevenLabsTTS();
+  const { isReady, isSpeaking, speak, cancel } = usePiperTTS();
 
 
   // Load chat history
@@ -42,7 +44,7 @@ export default function AiMitraChat() {
       if (session) {
         setMessages(session.messages);
       } else {
-        setMessages([{ role: 'assistant', content: 'Namaskar! How can I assist you with Maharashtra agriculture?' }]);
+        setMessages([{ id: 'initial-greeting', role: 'assistant', content: 'Namaskar! How can I assist you with Maharashtra agriculture?' }]);
       }
     } catch (e) {
       setMessages([{ role: 'assistant', content: 'Namaskar! How can I assist you with Maharashtra agriculture?' }]);
@@ -58,11 +60,6 @@ export default function AiMitraChat() {
   }, [transcript]);
 
 
-  useEffect(() => {
-    if (ttsError) {
-      setError(ttsError);
-    }
-  }, [ttsError]);
 
   // Save chat history
   useEffect(() => {
@@ -87,18 +84,21 @@ export default function AiMitraChat() {
   // Speak the bot's message automatically when a new one is added
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
-    if (lastMessage && lastMessage.role === 'assistant' && !isSpeaking && isAudioUnlocked) {
-      const cleanedText = stripMarkdown(lastMessage.content);
-      speak(cleanedText, voiceGender);
+    if (voiceEnabled && isReady && lastMessage && lastMessage.role === 'assistant' && !isSpeaking && lastMessage.id !== lastSpokenMessageId) {
+      let cleanedText = stripMarkdown(lastMessage.content);
+      cleanedText = stripEmojis(cleanedText);
+      speak(cleanedText, i18n.language);
+      setLastSpokenMessageId(lastMessage.id);
     }
-  }, [messages, isAudioUnlocked, isSpeaking, speak, voiceGender]);
+  }, [messages, isSpeaking, speak, lastSpokenMessageId, voiceEnabled, isReady, i18n.language]);
 
   const handleSend = useCallback((text) => {
     const messageToSend = typeof text === 'string' ? text : inputValue;
     if (messageToSend.trim() === '' || isProcessing) return;
     setInputValue('');
     cancel();
-    setMessages(prev => [...prev, { role: 'user', content: messageToSend }]);
+    setMessages(prev => [...prev, { id: Date.now(), role: 'user', content: messageToSend }]);
+    setIsAwaitingResponse(true);
   }, [inputValue, isProcessing, cancel]);
 
   // Effect to generate bot response when a new user message is added
@@ -114,7 +114,7 @@ export default function AiMitraChat() {
         const localResponse = getAiMitraResponse(lastMessage.content);
 
         if (localResponse) {
-          setMessages((prev) => [...prev, { role: 'assistant', content: localResponse }]);
+          setMessages((prev) => [...prev, { id: Date.now(), role: 'assistant', content: localResponse }]);
           setIsProcessing(false);
           return;
         } else {
@@ -141,17 +141,18 @@ export default function AiMitraChat() {
           responseContent = data.choices[0].message.content;
         }
 
-        setMessages((prev) => [...prev, { role: 'assistant', content: responseContent }]);
+        setMessages((prev) => [...prev, { id: Date.now(), role: 'assistant', content: responseContent }]);
       } catch (err) {
         const errorMessage = err.message || 'Sorry, I encountered an error.';
         setError({ type: 'API_ERROR', message: errorMessage });
-        setMessages((prev) => [...prev, { role: 'assistant', content: errorMessage }]);
+        setMessages((prev) => [...prev, { id: Date.now(), role: 'assistant', content: errorMessage }]);
       } finally {
         setIsProcessing(false);
+        setIsAwaitingResponse(false);
       }
     };
 
-    if (messages.length > 0 && messages[messages.length - 1].role === 'user' && !isProcessing) {
+    if (isAwaitingResponse && messages.length > 0 && messages[messages.length - 1].role === 'user' && !isProcessing) {
       getResponse(messages);
     }
   }, [messages]);
@@ -166,25 +167,28 @@ export default function AiMitraChat() {
   // Remove the text-based UI and replace with a voice-only interface
   useEffect(() => {
     // Automatically start listening when the component mounts and audio is unlocked
-    if (isAudioUnlocked && !isListening && !isProcessing && !isSpeaking) {
+    if (voiceEnabled && !isListening && !isProcessing && !isSpeaking) {
       startListening();
     }
-  }, [isAudioUnlocked, isListening, isProcessing, isSpeaking]);
+  }, [voiceEnabled, isProcessing, isSpeaking, startListening]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-b from-[#0a0f1f] to-[#10172d] relative">
       <button className="absolute top-6 left-6 text-sm text-slate-300 hover:text-white transition" onClick={() => navigate('/')}>← Home</button>
 
-      {!isAudioUnlocked && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20">
-          <button 
-            onClick={unlockAudio} 
-            className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg shadow-lg hover:bg-emerald-700 transition-all transform hover:scale-105"
-          >
-            Enable Voice
-          </button>
-        </div>
-      )}
+      <div className="absolute top-6 right-6 flex items-center space-x-2">
+        <span className={`text-sm ${voiceEnabled ? 'text-cyan-400' : 'text-slate-400'}`}>{isReady ? 'Voice' : 'Loading Voice...'}</span>
+        <button 
+          onClick={() => setVoiceEnabled(!voiceEnabled)}
+          disabled={!isReady}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${voiceEnabled ? 'bg-cyan-500' : 'bg-slate-700'} disabled:opacity-50`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${voiceEnabled ? 'translate-x-6' : 'translate-x-1'}`}
+          />
+        </button>
+      </div>
+
 
       {error && <ErrorBanner error={error} />}
 
@@ -197,10 +201,6 @@ export default function AiMitraChat() {
 
       <div className="absolute bottom-10 text-center text-slate-400">
         <p>Tap the icon to speak</p>
-        <div className="flex justify-center space-x-4 mt-4">
-            <button onClick={() => setVoiceGender('male')} className={`px-3 py-1 text-sm rounded-full ${voiceGender === 'male' ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-slate-300'}`}>Male Voice</button>
-            <button onClick={() => setVoiceGender('female')} className={`px-3 py-1 text-sm rounded-full ${voiceGender === 'female' ? 'bg-cyan-500 text-white' : 'bg-slate-700 text-slate-300'}`}>Female Voice</button>
-        </div>
       </div>
     </div>
   );

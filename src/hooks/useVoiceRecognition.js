@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const useVoiceRecognition = (language) => {
   const [isListening, setIsListening] = useState(false);
@@ -41,18 +41,18 @@ const useVoiceRecognition = (language) => {
     };
   }, [language]);
 
-  const startListening = () => {
+  const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
       setTranscript('');
       recognitionRef.current.start();
     }
-  };
+  }, [isListening]);
 
-  const stopListening = () => {
+  const stopListening = useCallback(() => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
     }
-  };
+  }, [isListening]);
 
   return { isListening, transcript, startListening, stopListening };
 };

@@ -17,9 +17,9 @@ const CropSidebar = ({ crops, selectedCrop, onSelectCrop, weather }) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredCrops = crops.filter(crop =>
+  const filteredCrops = Array.isArray(crops) ? crops.filter(crop =>
     t(crop.name).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   // TODO: Replace with actual chat panel integration
   const handleStartChat = () => {
@@ -76,7 +76,7 @@ const CropSidebar = ({ crops, selectedCrop, onSelectCrop, weather }) => {
               >
                 <img src={crop.icon} alt={`${t(crop.name)} icon`} className="w-8 h-8 rounded-full" />
                 <span>{t(crop.name)}</span>
-                <span className="text-xs text-[#9fb3c8] ml-auto">{crop.seasons[0]}</span>
+                <span className="text-xs text-[#9fb3c8] ml-auto">{crop.sowingAndPlanting?.sowingMonths?.[0]}</span>
               </button>
             </li>
           ))}
@@ -87,8 +87,8 @@ const CropSidebar = ({ crops, selectedCrop, onSelectCrop, weather }) => {
         <div className="mt-4 border-t border-teal-300/20 pt-4">
           <h3 className="flex items-center space-x-2 font-bold text-lg mb-2 text-[#e8f1ff]"><Info size={18} className="text-blue-400" /><span>Quick Facts</span></h3>
           <div className="text-sm text-[#9fb3c8] bg-black/20 p-3 rounded-md">
-            <p><strong className="text-[#e8f1ff]">Season:</strong> {selectedCrop.seasons.join(', ')}</p>
-            <p><strong className="text-[#e8f1ff]">Family:</strong> {selectedCrop.family}</p>
+            <p><strong className="text-[#e8f1ff]">Sowing Months:</strong> {selectedCrop.sowingAndPlanting?.sowingMonths?.join(', ')}</p>
+            <p><strong className="text-[#e8f1ff]">Difficulty:</strong> {selectedCrop.difficulty}</p>
           </div>
           
           <div className="mt-4">

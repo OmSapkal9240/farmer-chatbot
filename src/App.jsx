@@ -44,7 +44,8 @@ function App() {
             </Routes>
           </Suspense>
         </main>
-        {!isChatPage && <Footer />}
+        {/* HIDE_FOOTER_TASK: The user has requested to temporarily hide the footer. */}
+        {/* {!isChatPage && <Footer />} */}
 </div>
       );
 }
