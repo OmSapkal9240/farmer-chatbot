@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ParticlesBackground from './components/ParticlesBackground';
 import LoadingSpinner from './components/LoadingSpinner';
+import FloatingWhatsAppButton from './components/FloatingWhatsAppButton';
 
 const Home = lazy(() => import('./pages/Home'));
 const WhatsAppSMSPage = lazy(() => import('./pages/ModulePage'));
@@ -22,6 +23,7 @@ function App() {
   const { t } = useTranslation();
   const location = useLocation();
   const isChatPage = location.pathname.startsWith('/chat/');
+  const isHomePage = location.pathname === '/';
 
   return (
           <div className="min-h-screen font-sans text-slate-200">
@@ -44,6 +46,7 @@ function App() {
             </Routes>
           </Suspense>
         </main>
+        <FloatingWhatsAppButton isHomePage={isHomePage} />
         {/* HIDE_FOOTER_TASK: The user has requested to temporarily hide the footer. */}
         {/* {!isChatPage && <Footer />} */}
 </div>
