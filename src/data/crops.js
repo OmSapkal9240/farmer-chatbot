@@ -1,6 +1,6 @@
 // @/src/data/crops.js
 
-export const crops = [
+export const detailedCrops = [
   {
     id: 'paddy',
     name: 'Paddy (Rice)',
@@ -201,3 +201,20 @@ export const crops = [
     },
   },
 ];
+
+export const cropNames = detailedCrops.map(c => c.name);
+
+export const states = [
+  'Andhra Pradesh',
+  'Gujarat',
+  'Karnataka',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Punjab',
+  'Rajasthan',
+  'Tamil Nadu',
+  'Uttar Pradesh',
+  'West Bengal'
+];
+
+export const crops = cropNames; // Keep original export for compatibility

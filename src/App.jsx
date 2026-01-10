@@ -18,6 +18,7 @@ const WeatherInsights = lazy(() => import('./pages/WeatherInsights'));
 const JobsPage = lazy(() => import('./pages/JobsPage'));
 const AiMitraChat = lazy(() => import('./pages/AiMitraChat'));
 const DemoOne = lazy(() => import('./pages/DemoOne'));
+const MarketPrices = lazy(() => import('./components/mandi/MarketPrices'));
 
 function App() {
   const { t } = useTranslation();
@@ -43,6 +44,7 @@ function App() {
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/ai-mitra/:chatId" element={<AiMitraChat />} />
               <Route path="/demo" element={<DemoOne />} />
+              <Route path="/mandi-prices" element={<MarketPrices />} />
             </Routes>
           </Suspense>
         </main>
