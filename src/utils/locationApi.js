@@ -47,34 +47,6 @@ export const getLocationDetails = async (lat, lon) => {
  * @param {number} lon - Longitude.
  * @returns {Promise<object>} A promise that resolves with the weather data.
  */
-/**
- * Fetches location details and coordinates from a PIN code.
- * @param {string} pin - The 6-digit PIN code.
- * @returns {Promise<object>} A promise that resolves with lat, lon, state, district, and pin.
- */
-export const geocodeByPin = async (pin) => {
-  if (!OPENCAGE_API_KEY) {
-    throw new Error('OpenCage API key is missing.');
-  }
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${pin},+India&key=${OPENCAGE_API_KEY}`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error('Failed to fetch location details for the given PIN code.');
-  }
-  const data = await response.json();
-  if (!data.results || data.results.length === 0) {
-    throw new Error('No results found for the given PIN code.');
-  }
-  const { lat, lng } = data.results[0].geometry;
-  const components = data.results[0].components;
-  return {
-    lat,
-    lon: lng,
-    state: components?.state,
-    district: components?.state_district || components?.county,
-    pin: components?.postcode,
-  };
-};
 
 export const getWeatherData = async (lat, lon) => {
   if (!OPENWEATHER_API_KEY) {
