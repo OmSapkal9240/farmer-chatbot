@@ -3,8 +3,11 @@ import { Menu, X } from 'lucide-react';
 import FeatureMenu from './FeatureMenu';
 import LanguageSwitcher from './LanguageSwitcher';
 import AnimatedTitle from './AnimatedTitle';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -15,6 +18,9 @@ const Navbar = () => {
             <AnimatedTitle name="KisanPulse" />
           </div>
           <div className="hidden md:flex items-center space-x-6">
+            <Link to="/mandi-prices" className="text-white hover:text-slate-300 transition-colors duration-200">
+              {t('mandi_prices')}
+            </Link>
             <FeatureMenu />
             <LanguageSwitcher />
           </div>
@@ -28,6 +34,9 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-slate-800/95 backdrop-blur-lg">
           <div className="px-4 pt-2 pb-4 space-y-4">
+            <Link to="/mandi-prices" onClick={() => setIsMenuOpen(false)} className="block text-white hover:text-slate-300 transition-colors duration-200">
+              {t('mandi_prices')}
+            </Link>
             <FeatureMenu />
             <LanguageSwitcher />
           </div>

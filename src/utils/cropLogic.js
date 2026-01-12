@@ -1,4 +1,4 @@
-import { crops as allCrops } from '../data/crops';
+import { detailedCrops as allCrops } from '../data/crops';
 
 /**
  * Detects the current farming season based on the month and rainfall.
