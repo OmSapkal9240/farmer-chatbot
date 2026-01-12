@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
+import { AGMARK_API_KEY as FALLBACK_API_KEY } from '../config';
 
-const API_KEY = import.meta.env.VITE_AGMARK_API_KEY;
+const envApiKey = import.meta.env.VITE_AGMARK_API_KEY;
+const API_KEY = (envApiKey && envApiKey !== 'YOUR_AGMARK_API_KEY_HERE') ? envApiKey : FALLBACK_API_KEY;
 const BASE_URL = 'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070';
 const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
@@ -36,7 +38,7 @@ const useAgmarknetData = () => {
 
     try {
       if (!API_KEY || API_KEY === 'YOUR_AGMARK_API_KEY_HERE') {
-        throw new Error('API Key not configured.');
+        throw new Error('API_KEY_MISSING');
       }
 
       const queryParams = new URLSearchParams({

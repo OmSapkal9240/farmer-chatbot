@@ -1,0 +1,1 @@
+export const AGMARK_API_KEY='579b464db66ec23bdd0000013ae8d291a56a4ea24da06ee3030871ff';
