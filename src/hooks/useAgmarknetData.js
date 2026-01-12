@@ -8,28 +8,41 @@ const useAgmarknetData = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState('');
 
   const fetchData = useCallback(async (filters) => {
     setLoading(true);
     setError(null);
+    setLastUpdated('');
 
     const cacheKey = `agmarknet_data_${filters.state}_${filters.commodity}`;
     const cachedItem = localStorage.getItem(cacheKey);
 
     if (cachedItem) {
-      const { timestamp, data } = JSON.parse(cachedItem);
+      const { timestamp, data: cachedData } = JSON.parse(cachedItem);
       if (Date.now() - timestamp < CACHE_DURATION) {
-        setData(data);
+        setData(cachedData);
         setLoading(false);
+        if (cachedData.length > 0) {
+          const mostRecentDate = new Date(cachedData[0].arrival_date);
+          const today = new Date();
+          if (mostRecentDate.toDateString() !== today.toDateString()) {
+            setLastUpdated(`Aaj ka bhav uplabdh nahi hai, ${mostRecentDate.toLocaleDateString('en-IN')} ka data dikhaya ja raha hai.`);
+          }
+        }
         return;
       }
     }
 
     try {
+      if (!API_KEY || API_KEY === 'YOUR_AGMARK_API_KEY_HERE') {
+        throw new Error('API Key not configured.');
+      }
+
       const queryParams = new URLSearchParams({
         'api-key': API_KEY,
         format: 'json',
-        limit: 100, // Fetch a reasonable number of recent records
+        limit: 500, // Fetch more records to get a better spread of mandis
       });
 
       if (filters.state) {
@@ -42,7 +55,7 @@ const useAgmarknetData = () => {
       const response = await fetch(`${BASE_URL}?${queryParams.toString()}`);
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(`API request failed with status ${response.status}`);
       }
 
       const result = await response.json();
@@ -56,19 +69,27 @@ const useAgmarknetData = () => {
       localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
       setData(sortedRecords);
 
+      if (sortedRecords.length > 0) {
+        const mostRecentDate = new Date(sortedRecords[0].arrival_date);
+        const today = new Date();
+        if (mostRecentDate.toDateString() !== today.toDateString()) {
+          setLastUpdated(`Aaj ka bhav uplabdh nahi hai, ${mostRecentDate.toLocaleDateString('en-IN')} ka data dikhaya ja raha hai.`);
+        }
+      }
+
     } catch (err) {
-      setError('Aaj ka taaza bhav abhi uplabdh nahi hai');
-      // Fallback to cached data if API fails
+      setError(err.message);
       if (cachedItem) {
-        const { data } = JSON.parse(cachedItem);
-        setData(data);
+        const { data: cachedData } = JSON.parse(cachedItem);
+        setData(cachedData);
+        setLastUpdated('API se connect nahi ho pa raha. Purana data dikhaya ja raha hai.');
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  return { data, loading, error, fetchData };
+  return { data, loading, error, lastUpdated, fetchData };
 };
 
 export default useAgmarknetData;

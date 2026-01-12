@@ -1,26 +1,56 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useAgmarknetData from '../../hooks/useAgmarknetData';
 import { cropNames as crops, states } from '../../data/crops';
-import { Loader, AlertCircle, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { Loader, AlertTriangle, TrendingUp, TrendingDown, ArrowRight, MapPin, Wheat, Store } from 'lucide-react';
 
-const Card = ({ title, children }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-md transform hover:-translate-y-1 transition-transform duration-300">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">{title}</h3>
-        {children}
+const SkeletonCard = () => (
+  <div className="bg-slate-800/50 p-6 rounded-2xl shadow-lg animate-pulse">
+    <div className="h-6 bg-slate-700 rounded w-3/4 mb-4"></div>
+    <div className="h-4 bg-slate-700 rounded w-1/2 mb-2"></div>
+    <div className="h-10 bg-slate-700 rounded w-1/3 my-4"></div>
+    <div className="flex justify-between">
+      <div className="h-4 bg-slate-700 rounded w-1/4"></div>
+      <div className="h-4 bg-slate-700 rounded w-1/4"></div>
     </div>
+  </div>
+);
+
+const PriceCard = ({ record }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    transition={{ duration: 0.3 }}
+    className="bg-slate-800/50 border border-slate-700 p-6 rounded-2xl shadow-lg transform hover:-translate-y-1 transition-transform duration-300 flex flex-col"
+  >
+    <div className="flex justify-between items-start mb-3">
+      <div>
+        <h3 className="text-lg font-bold text-cyan-300 flex items-center"><Store className="w-5 h-5 mr-2" /> {record.market}</h3>
+        <p className="text-sm text-slate-400"><Wheat className="w-4 h-4 mr-1.5 inline-block" /> {record.commodity} ({record.variety})</p>
+      </div>
+      <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded-full">{new Date(record.arrival_date).toLocaleDateString('en-IN')}</span>
+    </div>
+    <div className="flex-grow flex items-center justify-center my-4">
+        <p className="text-5xl font-extrabold text-green-400 [text-shadow:0_0_10px_rgba(74,222,128,0.5)]">₹{record.modal_price}</p>
+        <p className="text-slate-400 self-end ml-2">/ Quintal</p>
+    </div>
+    <div className="flex justify-between text-base font-semibold border-t border-slate-700 pt-3">
+      <p className="text-red-400">Min: <span className="font-bold">₹{record.min_price}</span></p>
+      <p className="text-sky-400">Max: <span className="font-bold">₹{record.max_price}</span></p>
+    </div>
+  </motion.div>
 );
 
 const MarketPrices = () => {
   const [selectedState, setSelectedState] = useState('Maharashtra');
   const [selectedCrop, setSelectedCrop] = useState('Onion');
   const [selectedMandi, setSelectedMandi] = useState('');
-  const { data, loading, error, fetchData } = useAgmarknetData();
+  const { data, loading, error, lastUpdated, fetchData } = useAgmarknetData();
 
   useEffect(() => {
-    if (selectedState && selectedCrop) {
-      fetchData({ state: selectedState, commodity: selectedCrop });
-    }
-  }, [selectedState, selectedCrop, fetchData]);
+    fetchData({ state: selectedState, commodity: selectedCrop });
+  }, []); // Fetch only on initial load
 
   const handleRefresh = () => {
     if (selectedState && selectedCrop) {
@@ -28,172 +58,97 @@ const MarketPrices = () => {
     }
   };
 
-  const { latestPrice, previousPrice, mandis } = useMemo(() => {
-    if (!data || data.length === 0) return { latestPrice: null, previousPrice: null, mandis: [] };
+  const mandis = useMemo(() => {
+    if (!data) return [];
+    return [...new Set(data.map(item => item.market))];
+  }, [data]);
 
-    const uniqueMandis = [...new Set(data.map(item => item.market))];
-    
-    let filteredData = data;
+  const filteredData = useMemo(() => {
+    if (!data) return [];
     if (selectedMandi) {
-        filteredData = data.filter(item => item.market === selectedMandi);
+      return data.filter(item => item.market === selectedMandi);
     }
-
-    if (filteredData.length === 0) return { latestPrice: null, previousPrice: null, mandis: uniqueMandis };
-
-    const sortedData = [...filteredData].sort((a, b) => new Date(b.arrival_date) - new Date(a.arrival_date));
-
-    const latest = sortedData[0];
-    const previous = sortedData.find(d => new Date(d.arrival_date) < new Date(latest.arrival_date));
-
-    return { latestPrice: latest, previousPrice: previous, mandis: uniqueMandis };
+    return data;
   }, [data, selectedMandi]);
 
-  const priceMovement = useMemo(() => {
-    if (!latestPrice || !previousPrice) {
-      return { text: 'Kal ka data uplabdh nahi', icon: <ArrowRight className="w-8 h-8" />, color: 'text-gray-500' };
-    }
-    const latestModal = parseFloat(latestPrice.modal_price);
-    const previousModal = parseFloat(previousPrice.modal_price);
-
-    if (isNaN(latestModal) || isNaN(previousModal)) return { text: 'Bhav uplabdh nahi', icon: <ArrowRight className="w-8 h-8" />, color: 'text-gray-500' };
-
-    const change = latestModal - previousModal;
-
-    if (change > 0) {
-      return { text: 'Kal ke mukable bhav badha', icon: <TrendingUp className="w-8 h-8" />, color: 'text-green-600' };
-    } else if (change < 0) {
-      return { text: 'Kal ke mukable bhav ghata', icon: <TrendingDown className="w-8 h-8" />, color: 'text-red-600' };
-    } else {
-      return { text: 'Kal ke mukable bhav sthir', icon: <ArrowRight className="w-8 h-8" />, color: 'text-gray-500' };
-    }
-  }, [latestPrice, previousPrice]);
-
-  const priceTrend = useMemo(() => {
-    if (!latestPrice || !previousPrice) {
-      return {
-        trend: 'Trend Spasht Nahi',
-        advice: 'Bhav ka trend janne ke liye pichla data uplabdh nahi hai.',
-        emoji: '🤔'
-      };
-    }
-
-    const latestModal = parseFloat(latestPrice.modal_price);
-    const previousModal = parseFloat(previousPrice.modal_price);
-    
-    if (isNaN(latestModal) || isNaN(previousModal) || previousModal === 0) {
-        return { trend: 'Trend Spasht Nahi', advice: 'Data aparyaapt hai.', emoji: '🤔' };
-    }
-
-    const percentageChange = ((latestModal - previousModal) / previousModal) * 100;
-
-    if (percentageChange > 2) {
-      return {
-        trend: 'Bhav Badh Raha Hai',
-        advice: 'Bhav badhne ki ummeed hai. Agar sambhav ho to fasal ko thoda rok kar bechein.',
-        emoji: '📈'
-      };
-    } else if (percentageChange < -2) {
-      return {
-        trend: 'Bhav Gir Raha Hai',
-        advice: 'Bhav girne ki aashanka hai. Jaldi bechne ka vichar karein.',
-        emoji: '📉'
-      };
-    } else {
-      return {
-        trend: 'Bhav Sthir Hai',
-        advice: 'Bhav sthir rehne ki sambhavna hai. Apni suvidha anusar bech sakte hain.',
-        emoji: '➡️'
-      };
-    }
-  }, [latestPrice, previousPrice]);
-
   return (
-    <div className="flex flex-col lg:flex-row gap-8 p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen font-sans">
-      <aside className="w-full lg:w-1/4 xl:w-1/5 bg-white p-6 rounded-2xl shadow-md h-fit">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Bhav Pata Karein</h2>
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-600 mb-2">Rajya Chunein</label>
-            <select id="state" value={selectedState} onChange={(e) => setSelectedState(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-              {states.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="crop" className="block text-sm font-medium text-gray-600 mb-2">Fasal Chunein</label>
-            <select id="crop" value={selectedCrop} onChange={(e) => { setSelectedCrop(e.target.value); setSelectedMandi(''); }} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition">
-              {crops.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="mandi" className="block text-sm font-medium text-gray-600 mb-2">Mandi Chunein (Optional)</label>
-            <select id="mandi" value={selectedMandi} onChange={(e) => setSelectedMandi(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" disabled={mandis.length === 0}>
-              <option value="">Sabhi Mandi</option>
-              {mandis.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-          <button onClick={handleRefresh} disabled={loading} className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105 flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed">
-            {loading ? <Loader className="animate-spin mr-2" /> : 'Bhav Refresh Karein'}
-          </button>
-        </div>
-      </aside>
-
-      <main className="w-full lg:w-3/4 xl:w-4/5">
-        {loading && !data && (
-          <div className="flex justify-center items-center h-96">
-            <Loader className="w-12 h-12 text-green-600 animate-spin" />
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md flex items-center">
-            <AlertCircle className="mr-3" />
-            <p className="font-semibold">{error}</p>
-          </div>
-        )}
-        {data && !latestPrice && !loading && (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-6 rounded-lg shadow-md">
-                <p className="font-bold text-lg">Is fasal ke liye abhi koi bhav uplabdh nahi hai.</p>
-                <p className="text-sm mt-1">Kripya koi aur fasal ya rajya chunein.</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-gray-900 text-white p-4 sm:p-6 md:p-8 font-sans">
+      <div className="flex flex-col lg:flex-row gap-8 max-w-screen-2xl mx-auto">
+        {/* Left Filter Panel */}
+        <aside className="w-full lg:w-1/4 xl:w-1/5">
+          <div className="sticky top-24 bg-slate-800/40 backdrop-blur-md border border-slate-700 p-6 rounded-2xl shadow-lg">
+            <h2 className="text-2xl font-bold text-cyan-300 mb-6">Bhav Pata Karein</h2>
+            <div className="space-y-6">
+              <div className="relative">
+                <label htmlFor="state" className="block text-sm font-semibold text-slate-300 mb-2">Rajya Chunein</label>
+                <MapPin className="absolute left-3 top-10 w-5 h-5 text-slate-400" />
+                <select id="state" value={selectedState} onChange={(e) => setSelectedState(e.target.value)} className="w-full pl-10 p-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition appearance-none">
+                  {states.map(s => <option key={s} value={s}>{s}</option>)} 
+                </select>
+              </div>
+              <div className="relative">
+                <label htmlFor="crop" className="block text-sm font-semibold text-slate-300 mb-2">Fasal Chunein</label>
+                <Wheat className="absolute left-3 top-10 w-5 h-5 text-slate-400" />
+                <select id="crop" value={selectedCrop} onChange={(e) => { setSelectedCrop(e.target.value); setSelectedMandi(''); }} className="w-full pl-10 p-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition appearance-none">
+                  {crops.map(c => <option key={c} value={c}>{c}</option>)} 
+                </select>
+              </div>
+              <div className="relative">
+                <label htmlFor="mandi" className="block text-sm font-semibold text-slate-300 mb-2">Mandi Chunein (Optional)</label>
+                <Store className="absolute left-3 top-10 w-5 h-5 text-slate-400" />
+                <select id="mandi" value={selectedMandi} onChange={(e) => setSelectedMandi(e.target.value)} className="w-full pl-10 p-3 bg-slate-700/50 border border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition appearance-none" disabled={mandis.length === 0}>
+                  <option value="">Sabhi Mandi</option>
+                  {mandis.map(m => <option key={m} value={m}>{m}</option>)} 
+                </select>
+              </div>
+              <motion.button 
+                onClick={handleRefresh} 
+                disabled={loading} 
+                className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {loading ? <Loader className="animate-spin mr-2" /> : 'Bhav Refresh Karein'}
+              </motion.button>
             </div>
-        )}
-        {latestPrice && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card title="🧺 Aaj ka Mandi Bhav">
-              <p className="text-xl font-semibold text-gray-700">{latestPrice.commodity} ({latestPrice.variety})</p>
-              <p className="text-lg text-gray-500">{selectedMandi ? latestPrice.market : 'प्रमुख मंडियां'}</p>
-              <div className="my-4 text-center">
-                <p className="text-5xl font-bold text-green-700">₹{latestPrice.modal_price}</p>
-                <p className="text-gray-500">prati Quintal</p>
-              </div>
-              <div className="flex justify-between text-lg">
-                <p className="text-red-600">Min: ₹{latestPrice.min_price}</p>
-                <p className="text-blue-600">Max: ₹{latestPrice.max_price}</p>
-              </div>
-              <p className="text-sm text-gray-400 mt-4 text-right">Date: {new Date(latestPrice.arrival_date).toLocaleDateString('en-IN')}</p>
-            </Card>
-
-            <Card title="📊 Bhav mein Badalav">
-              <div className={`flex items-center justify-center h-full ${priceMovement.color}`}>
-                {priceMovement.icon}
-                <p className="text-xl font-bold ml-3">{priceMovement.text}</p>
-              </div>
-            </Card>
-
-            <Card title="🔮 Agle Kuch Din ka Trend">
-              <div className="text-center h-full flex flex-col justify-center items-center">
-                <p className="text-4xl mb-2">{priceTrend.emoji}</p>
-                <p className="text-xl font-bold text-gray-800">{priceTrend.trend}</p>
-                <p className="text-sm text-gray-500 mt-2">Ye trend pichhle bhav ke adhar par hai.</p>
-              </div>
-            </Card>
-
-            <Card title="🧠 Kisan ke liye Salah">
-              <div className="h-full flex items-center justify-center">
-                <p className="text-lg text-center font-medium text-gray-700">{priceTrend.advice}</p>
-              </div>
-            </Card>
           </div>
-        )}
-      </main>
+        </aside>
+
+        {/* Price Display Area */}
+        <main className="w-full lg:w-3/4 xl:w-4/5">
+          {error && (
+            <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg flex items-center">
+              <AlertTriangle className="mr-3 flex-shrink-0" />
+              <div>
+                <p className="font-bold">Data fetch karne mein samasya.</p>
+                <p className="text-sm">{error} Kripya dobara koshish karein.</p>
+              </div>
+            </div>
+          )}
+
+          {lastUpdated && !loading && (
+            <div className="bg-sky-900/50 border border-sky-700 text-sky-300 p-3 rounded-lg mb-6 text-center text-sm">
+              {lastUpdated}
+            </div>
+          )}
+
+          <AnimatePresence>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {loading && Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              {!loading && filteredData.length > 0 && filteredData.map((record, index) => (
+                <PriceCard key={`${record.market}-${record.commodity}-${index}`} record={record} />
+              ))}
+            </div>
+          </AnimatePresence>
+
+          {!loading && !error && filteredData.length === 0 && (
+            <div className="text-center py-20 bg-slate-800/30 rounded-2xl">
+              <h3 className="text-2xl font-bold text-slate-300">Data Uplabdh Nahi Hai</h3>
+              <p className="text-slate-400 mt-2">Is fasal ke liye is mandi mein data uplabdh nahi hai.</p>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };
