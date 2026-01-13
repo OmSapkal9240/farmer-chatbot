@@ -46,15 +46,14 @@ const MarketPrices = () => {
   const [selectedState, setSelectedState] = useState('Maharashtra');
   const [selectedCrop, setSelectedCrop] = useState('Onion');
   const [selectedMandi, setSelectedMandi] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const { data, loading, error, lastUpdated, fetchData } = useAgmarknetData();
 
-  useEffect(() => {
-    fetchData({ state: selectedState, commodity: selectedCrop });
-  }, []); // Fetch only on initial load
-
-  const handleRefresh = () => {
+  
+  const handleSearch = () => {
     if (selectedState && selectedCrop) {
       fetchData({ state: selectedState, commodity: selectedCrop });
+      setHasSearched(true);
     }
   };
 
@@ -71,13 +70,62 @@ const MarketPrices = () => {
     return data;
   }, [data, selectedMandi]);
 
+  if (!hasSearched) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-gray-900 text-white flex flex-col items-center justify-center p-4 font-sans">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, type: 'spring' }}
+          className="w-full max-w-lg text-center"
+        >
+          <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-300 via-cyan-300 to-green-300 mb-4 [text-shadow:0_0_20px_rgba(74,222,128,0.5)]">
+            Live Mandi Bhav
+          </h1>
+          <p className="text-slate-300 text-lg mb-10">Apni fasal ka sahi bhav paayein, turant!</p>
+          
+          <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700 p-8 rounded-2xl shadow-2xl space-y-8">
+            <div className="relative text-left">
+              <label htmlFor="state" className="block text-sm font-semibold text-slate-300 mb-2">1. Apna Rajya Chunein</label>
+              <MapPin className="absolute left-4 top-11 w-5 h-5 text-slate-400 z-10" />
+              <select id="state" value={selectedState} onChange={(e) => setSelectedState(e.target.value)} className="w-full pl-12 p-4 bg-slate-700/50 border border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition appearance-none text-lg">
+                {states.map(s => <option key={s} value={s}>{s}</option>)} 
+              </select>
+            </div>
+            <div className="relative text-left">
+              <label htmlFor="crop" className="block text-sm font-semibold text-slate-300 mb-2">2. Apni Fasal Chunein</label>
+              <Wheat className="absolute left-4 top-11 w-5 h-5 text-slate-400 z-10" />
+              <select id="crop" value={selectedCrop} onChange={(e) => setSelectedCrop(e.target.value)} className="w-full pl-12 p-4 bg-slate-700/50 border border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition appearance-none text-lg">
+                {crops.map(c => <option key={c} value={c}>{c}</option>)} 
+              </select>
+            </div>
+            <motion.button 
+              onClick={handleSearch} 
+              disabled={loading} 
+              className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-4 px-4 rounded-lg text-xl hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {loading ? <Loader className="animate-spin mr-2" /> : 'Bhav Pata Karein'}
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-gray-900 text-white p-4 sm:p-6 md:p-8 font-sans">
       <div className="flex flex-col lg:flex-row gap-8 max-w-screen-2xl mx-auto">
         {/* Left Filter Panel */}
         <aside className="w-full lg:w-1/4 xl:w-1/5">
           <div className="sticky top-24 bg-slate-800/40 backdrop-blur-md border border-slate-700 p-6 rounded-2xl shadow-lg">
-            <h2 className="text-2xl font-bold text-cyan-300 mb-6">Bhav Pata Karein</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-cyan-300">Filters</h2>
+              <button onClick={() => setHasSearched(false)} className="text-sm text-cyan-300 hover:underline">
+                New Search
+              </button>
+            </div>
             <div className="space-y-6">
               <div className="relative">
                 <label htmlFor="state" className="block text-sm font-semibold text-slate-300 mb-2">Rajya Chunein</label>
@@ -102,13 +150,13 @@ const MarketPrices = () => {
                 </select>
               </div>
               <motion.button 
-                onClick={handleRefresh} 
-                disabled={loading} 
+                onClick={handleSearch} 
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-teal-500/50 transition-all duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {loading ? <Loader className="animate-spin mr-2" /> : 'Bhav Refresh Karein'}
+                {loading ? <Loader className="animate-spin mr-2" /> : 'Refresh Bhav'}
               </motion.button>
             </div>
           </div>
