@@ -28,6 +28,8 @@
   "home.modules.govt_schemes.desc": "Find relevant schemes.",
   "home.modules.whatsapp_sms.title": "WhatsApp/SMS",
   "home.modules.whatsapp_sms.desc": "Connect via messaging.",
+  "home.modules.mandi_prices.title": "Live Mandi Prices",
+  "home.modules.mandi_prices.desc": "Get real-time market rates.",
   "chat.new_chat": "New Chat",
   "chat.welcome_message": "Namaskar! How can I help?",
   "pest.title": "Pest & Disease Diagnosis",

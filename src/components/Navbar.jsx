@@ -18,10 +18,7 @@ const Navbar = () => {
             <AnimatedTitle name="KisanPulse" />
           </div>
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/mandi-prices" className="text-white hover:text-slate-300 transition-colors duration-200">
-              {t('mandi_prices')}
-            </Link>
-            <FeatureMenu />
+                        <FeatureMenu />
             <LanguageSwitcher />
           </div>
           <div className="md:hidden">
@@ -34,10 +31,7 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-slate-800/95 backdrop-blur-lg">
           <div className="px-4 pt-2 pb-4 space-y-4">
-            <Link to="/mandi-prices" onClick={() => setIsMenuOpen(false)} className="block text-white hover:text-slate-300 transition-colors duration-200">
-              {t('mandi_prices')}
-            </Link>
-            <FeatureMenu />
+                        <FeatureMenu />
             <LanguageSwitcher />
           </div>
         </div>

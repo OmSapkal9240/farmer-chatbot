@@ -15,6 +15,7 @@ const modules = [
   { icon: '🐛', titleKey: 'home.modules.pest_diagnosis.title', descKey: 'home.modules.pest_diagnosis.desc', path: '/pest-diagnosis' },
   { icon: '📅', titleKey: 'home.modules.seasonal_advice.title', descKey: 'home.modules.seasonal_advice.desc', path: '/seasonal-advice' },
   { icon: '🏛️', titleKey: 'home.modules.govt_schemes.title', descKey: 'home.modules.govt_schemes.desc', path: '/govt-schemes' },
+  { icon: '💹', titleKey: 'home.modules.mandi_prices.title', descKey: 'home.modules.mandi_prices.desc', path: '/mandi-prices' },
   ];
 
 const FloatingFarmIcon = () => (
@@ -59,7 +60,7 @@ export default function Home() {
           transition={{ duration: 0.7 }}
         >
           <div 
-            className="relative w-full max-w-4xl mx-auto aspect-video rounded-3xl shadow-2xl shadow-inner shadow-black/50 overflow-hidden border border-slate-700 mb-12"
+            className="relative w-full max-w-4xl mx-auto aspect-video rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-slate-700 mb-12"
           >
              <div className="absolute -inset-8 bg-gradient-to-r from-green-500/30 to-cyan-500/30 rounded-full blur-3xl opacity-60 border-2 border-cyan-400/50"></div>
              <img src="/models/hero-image.jpg" alt="A vibrant image of farmers working in a lush green field under a clear sky, representing modern agriculture."

@@ -12,6 +12,7 @@ const modules = [
   { name: 'govt_schemes', path: '/govt-schemes' },
   { name: 'whatsapp_sms_access', path: '/whatsapp-sms' },
   { name: 'jobs', path: '/jobs' },
+  { name: 'mandi_prices', path: '/mandi-prices' },
 ];
 
 const FeatureMenu = () => {
